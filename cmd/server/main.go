@@ -8,6 +8,7 @@ import (
 
 	"github.com/akamensky/argparse"
 	"github.com/teagan42/snidemind/internal/config"
+	"github.com/teagan42/snidemind/internal/llm"
 	"github.com/teagan42/snidemind/internal/mcp"
 	"github.com/teagan42/snidemind/internal/server"
 	"github.com/teagan42/snidemind/internal/types"
@@ -80,5 +81,5 @@ func main() {
 	}
 
 	server := server.NewServer(config.Server)
-	server.Start()
+	server.Start(llm.NewLLM(config.LLM))
 }

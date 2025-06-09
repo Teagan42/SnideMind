@@ -1,4 +1,4 @@
-package models
+package types
 
 type ModelResponse struct {
 	ID      string `json:"id" validate:"required"`

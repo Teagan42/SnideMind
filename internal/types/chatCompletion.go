@@ -1,4 +1,4 @@
-package chat
+package types
 
 type ChatMessage struct {
 	Role    string `json:"role"`
@@ -48,20 +48,20 @@ type WebSearchOptions struct {
 type ChatCompletionRequest struct {
 	Messages            []ChatMessage     `json:"messages"`
 	Model               string            `json:"model"`
-	FrequencyPenalty    float64           `json:"frequency_penalty,omitempty"`
+	FrequencyPenalty    *float64          `json:"frequency_penalty,omitempty"`
 	FunctionCall        *FunctionCall     `json:"function_call,omitempty"`
 	LogProbs            bool              `json:"logprobs,omitempty"`
-	MaxCompletionTokens int               `json:"max_completion_tokens,omitempty"`
-	N                   int               `json:"n,omitempty"`
+	MaxCompletionTokens *int64            `json:"max_completion_tokens,omitempty"`
+	N                   *int              `json:"n,omitempty"`
 	ParallelToolCalls   bool              `json:"parallel_tool_calls,omitempty"`
-	PresencePenalty     float64           `json:"presence_penalty,omitempty"`
+	PresencePenalty     *float64          `json:"presence_penalty,omitempty"`
 	ReasoningEffort     string            `json:"reasoning_effort,omitempty"`
 	ResponseFormat      string            `json:"response_format,omitempty"`
-	Stream              bool              `json:"stream,omitempty"`
-	Temperature         float64           `json:"temperature,omitempty"`
+	Stream              *bool             `json:"stream,omitempty"`
+	Temperature         *float64          `json:"temperature,omitempty"`
 	Tools               []Tool            `json:"tools,omitempty"`
 	TopLogProbs         int               `json:"top_logprobs,omitempty"`
-	TopP                float64           `json:"top_p,omitempty"`
+	TopP                *float64          `json:"top_p,omitempty"`
 	User                string            `json:"user,omitempty"`
 	WebSearchOptions    *WebSearchOptions `json:"web_search_options,omitempty"`
 }

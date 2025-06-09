@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/teagan42/snidemind/internal/server/middleware"
+	"github.com/teagan42/snidemind/internal/types"
 )
 
 func ChatCompletionsHandler(w http.ResponseWriter, r *http.Request) {
@@ -13,14 +14,15 @@ func ChatCompletionsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := middleware.GetValidatedBody[*ChatCompletionRequest](r); err != nil {
+	if _, err := middleware.GetValidatedBody[*types.ChatCompletionRequest](r); err != nil {
 		http.Error(w, `{"error":"invalid request body"}`, http.StatusBadRequest)
 		return
 	}
 
-	var response = ChatCompletionResponse{}
+	// TODO: Implement the logic to filter Tools/Prompts/Resources based on query and MCP blacklist
+	// Forward request to the LLM
 
-	// Handle chat completions logic here
+	var response = types.ChatCompletionResponse{}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }

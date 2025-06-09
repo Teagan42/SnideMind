@@ -13,6 +13,8 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/routers/gorillamux"
+
+	"github.com/teagan42/snidemind/internal/llm"
 )
 
 type Server struct {
@@ -25,7 +27,7 @@ func NewServer(cfg models.ServerConfig) *Server {
 	}
 }
 
-func (s *Server) Start() error {
+func (s *Server) Start(llmClient *llm.LLM) error {
 	fmt.Printf("Starting server on %s:%d\n", s.Config.Bind, s.Config.Port)
 	addr := fmt.Sprintf("%s:%d", s.Config.Bind, s.Config.Port)
 	r := mux.NewRouter()
@@ -45,7 +47,7 @@ func (s *Server) Start() error {
 		log.Fatalf("failed to create OpenAPI router: %v", err)
 	}
 	r.Use(middleware.OpenAPIValidationMiddleware(openAPIRouter))
-	v1.AddRoutes(r.PathPrefix("/v1").Subrouter())
+	v1.AddRoutes(r.PathPrefix("/v1").Subrouter(), llmClient)
 
 	err = r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
 		pathTemplate, err := route.GetPathTemplate()

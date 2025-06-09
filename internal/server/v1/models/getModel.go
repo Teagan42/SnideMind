@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/teagan42/snidemind/internal/server/middleware"
+	"github.com/teagan42/snidemind/internal/types"
 )
 
 func GetModelHandler(w http.ResponseWriter, r *http.Request) {
@@ -21,7 +22,7 @@ func GetModelHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var response = ModelResponse{}
+	var response = types.ModelResponse{}
 
 	json.NewEncoder(w).Encode(response)
 	w.WriteHeader(http.StatusOK)
