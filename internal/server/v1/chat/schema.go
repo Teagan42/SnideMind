@@ -1,126 +1,126 @@
 package chat
 
 type ChatMessage struct {
-	Role    string `json:"role" validate:"required,oneof=user assistant system"`
-	Content string `json:"content" validate:"required"`
+	Role    string `json:"role"`
+	Content string `json:"content"`
 	Name    string `json:"name,omitempty"`
 }
 
 type FunctionCall struct {
-	Name string `json:"name" validate:"required"`
+	Name string `json:"name"`
 }
 
 type ToolChoice struct {
-	Name string `json:"name" validate:"required"`
-	Type string `json:"type" validate:"required,oneof=function"`
+	Name string `json:"name"`
+	Type string `json:"type"`
 }
 
 type ToolFunctionParameters map[string]any
 
 type ToolFunction struct {
-	Name        string                 `json:"name" validate:"required"`
+	Name        string                 `json:"name"`
 	Description string                 `json:"description,omitempty"`
-	Parameters  ToolFunctionParameters `json:"parameters" validate:"required,dive" swagger:"object"`
+	Parameters  ToolFunctionParameters `json:"parameters"`
 }
 
 type Tool struct {
-	Type     string       `json:"type" validate:"required,oneof=function"`
-	Function ToolFunction `json:"function" validate:"required,dive"`
+	Type     string       `json:"type"`
+	Function ToolFunction `json:"function"`
 }
 
 type ApproximateLocation struct {
 	City     string `json:"city,omitempty"`
-	Country  string `json:"country,omitempty" validate:"omitempty,max=2,min=2"`
+	Country  string `json:"country,omitempty"`
 	Region   string `json:"region,omitempty"`
-	TimeZone string `json:"timezone,omitempty" validate:"omitempty,max=64"`
+	TimeZone string `json:"timezone,omitempty"`
 }
 
 type WebSearchUserLocation struct {
-	Type        string              `json:"type" validate:"required,oneof=approximate"`
-	Approximate ApproximateLocation `json:"approximate" validate:"required,dive"`
+	Type        string              `json:"type"`
+	Approximate ApproximateLocation `json:"approximate"`
 }
 
 type WebSearchOptions struct {
-	SearchContextSize string                 `json:"search_context_size,omitempty" validate:"omitempty,oneof=small medium large"`
-	UserLocation      *WebSearchUserLocation `json:"user_location,omitempty" validate:"omitempty,dive"`
+	SearchContextSize string                 `json:"search_context_size,omitempty"`
+	UserLocation      *WebSearchUserLocation `json:"user_location,omitempty"`
 }
 
 type ChatCompletionRequest struct {
-	Messages            []ChatMessage     `json:"messages" validate:"required,dive"`
-	Model               string            `json:"model" validate:"required"`
-	FrequencyPenalty    float64           `json:"frequency_penalty,omitempty" validate:"omitempty,min=-2.0,max=2.0,default=0.0"`
-	FunctionCall        *FunctionCall     `json:"function_call,omitempty" validate:"omitempty,dive"`
-	LogProbs            bool              `json:"logprobs,omitempty" validate:"omitempty"`
-	MaxCompletionTokens int               `json:"max_completion_tokens,omitempty" validate:"omitempty,min=1,max=4096"`
-	N                   int               `json:"n,omitempty" validate:"omitempty,min=1,max=10,default=1"`
-	ParallelToolCalls   bool              `json:"parallel_tool_calls,omitempty" validate:"omitempty"`
-	PresencePenalty     float64           `json:"presence_penalty,omitempty" validate:"omitempty,min=-2.0,max=2.0,default=0.0"`
-	ReasoningEffort     string            `json:"reasoning_effort,omitempty" validate:"omitempty,oneof=low medium high"`
-	ResponseFormat      string            `json:"response_format,omitempty" validate:"omitempty,oneof=text json"`
-	Stream              bool              `json:"stream,omitempty" validate:"omitempty, default=false"`
-	Temperature         float64           `json:"temperature,omitempty" validate:"omitempty,min=0.0,max=2.0,default=1.0"`
-	Tools               []Tool            `json:"tools,omitempty" validate:"omitempty,dive"`
-	TopLogProbs         int               `json:"top_logprobs,omitempty" validate:"omitempty,min=0,max=20,"`
-	TopP                float64           `json:"top_p,omitempty" validate:"omitempty,min=0.0,max=1.0,default=1.0"`
-	User                string            `json:"user,omitempty" validate:"omitempty"`
-	WebSearchOptions    *WebSearchOptions `json:"web_search_options,omitempty" validate:"omitempty,dive"`
+	Messages            []ChatMessage     `json:"messages"`
+	Model               string            `json:"model"`
+	FrequencyPenalty    float64           `json:"frequency_penalty,omitempty"`
+	FunctionCall        *FunctionCall     `json:"function_call,omitempty"`
+	LogProbs            bool              `json:"logprobs,omitempty"`
+	MaxCompletionTokens int               `json:"max_completion_tokens,omitempty"`
+	N                   int               `json:"n,omitempty"`
+	ParallelToolCalls   bool              `json:"parallel_tool_calls,omitempty"`
+	PresencePenalty     float64           `json:"presence_penalty,omitempty"`
+	ReasoningEffort     string            `json:"reasoning_effort,omitempty"`
+	ResponseFormat      string            `json:"response_format,omitempty"`
+	Stream              bool              `json:"stream,omitempty"`
+	Temperature         float64           `json:"temperature,omitempty"`
+	Tools               []Tool            `json:"tools,omitempty"`
+	TopLogProbs         int               `json:"top_logprobs,omitempty"`
+	TopP                float64           `json:"top_p,omitempty"`
+	User                string            `json:"user,omitempty"`
+	WebSearchOptions    *WebSearchOptions `json:"web_search_options,omitempty"`
 }
 
 type TokenLogProb struct {
-	Token   string  `json:"token" validate:"required"`
-	LogProb float64 `json:"logprob" validate:"required"`
+	Token   string  `json:"token"`
+	LogProb float64 `json:"logprob"`
 	Bytes   []byte  `json:"bytes,omitempty"`
 }
 
 type ChatCompletionLogProb struct {
 	TokenLogProb
-	TopLogProbs []TokenLogProb `json:"top_logprobs,omitempty" validate:"omitempty,dive"`
+	TopLogProbs []TokenLogProb `json:"top_logprobs,omitempty"`
 }
 
 type ChatCompletionLogProbs struct {
-	Content []ChatCompletionLogProb `json:"content,omitempty" validate:"omitempty,dive"`
-	Refusal []ChatCompletionLogProb `json:"refusal,omitempty" validate:"omitempty,dive"`
+	Content []ChatCompletionLogProb `json:"content,omitempty"`
+	Refusal []ChatCompletionLogProb `json:"refusal,omitempty"`
 }
 
 type ChatCompletionsMessageFunctionCall struct {
-	Name      string `json:"name" validate:"required"`
-	Arguments string `json:"arguments" validate:"required"`
+	Name      string `json:"name"`
+	Arguments string `json:"arguments"`
 }
 
 type ChatCompletionsMessageToolCall struct {
-	ID       string                             `json:"id" validate:"required"`
-	Type     string                             `json:"type" validate:"required,oneof=function"`
-	Function ChatCompletionsMessageFunctionCall `json:"function" validate:"required,dive"`
+	ID       string                             `json:"id"`
+	Type     string                             `json:"type"`
+	Function ChatCompletionsMessageFunctionCall `json:"function"`
 }
 
 type URLCitation struct {
-	StartIndex int    `json:"start_index" validate:"required,min=0"`
-	EndIndex   int    `json:"end_index" validate:"required,min=0"`
-	URL        string `json:"url" validate:"required,url"`
-	Title      string `json:"title" validate:"required"`
+	StartIndex int    `json:"start_index"`
+	EndIndex   int    `json:"end_index"`
+	URL        string `json:"url"`
+	Title      string `json:"title"`
 }
 
 type ChatCompletionResponseMessageAnnotation struct {
-	Type        string      `json:"type" validate:"required,oneof=url_citation"`
-	URLCitation URLCitation `json:"url_citation" validate:"required,dive"`
+	Type        string      `json:"type"`
+	URLCitation URLCitation `json:"url_citation"`
 }
 
 type ChatCompletionResponseMessage struct {
-	Content string `json:"content" validate:"required"`
-	Refusal bool   `json:"refusal,omitempty" validate:"omitempty"`
+	Content string `json:"content"`
+	Refusal bool   `json:"refusal,omitempty"`
 }
 
 type ChatCompletionChoice struct {
-	FinishReason string                  `json:"finish_reason" validate:"required,oneof=stop length tool_calls content_filter function_call"`
-	Index        int                     `json:"index" validate:"required,min=0"`
-	LogProbs     *ChatCompletionLogProbs `json:"logprobs,omitempty" validate:"omitempty,dive"`
-	Message      ChatMessage             `json:"message" validate:"required,dive"`
+	FinishReason string                  `json:"finish_reason"`
+	Index        int                     `json:"index"`
+	LogProbs     *ChatCompletionLogProbs `json:"logprobs,omitempty"`
+	Message      ChatMessage             `json:"message"`
 }
 
 type ChatCompletionResponse struct {
-	ID      string                 `json:"id" validate:"required"`
-	Choices []ChatCompletionChoice `json:"choices" validate:"required,dive"`
-	Created int64                  `json:"created" validate:"required"`
-	Model   string                 `json:"model" validate:"required"`
-	Object  string                 `json:"object" validate:"required,oneof=chat.completion"`
+	ID      string                 `json:"id"`
+	Choices []ChatCompletionChoice `json:"choices"`
+	Created int64                  `json:"created"`
+	Model   string                 `json:"model"`
+	Object  string                 `json:"object"`
 }

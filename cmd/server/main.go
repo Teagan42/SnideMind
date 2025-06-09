@@ -1,4 +1,4 @@
-package server
+package main
 
 import (
 	"context"
@@ -40,16 +40,33 @@ func main() {
 	// 	log.Fatalf("[Redis] Connection failed: %v", err)
 	// }
 
-	bindAddress, _ := types.NewHost(*bind)
-	portNumber, _ := types.NewPort(*port)
-
-	config, err := config.LoadConfig(*configPath, &bindAddress, &portNumber)
+	var bindAddress *types.Host
+	var portNumber *types.Port
+	if bind != nil && *bind != "" {
+		if bindHost, err := types.NewHost(*bind); err != nil {
+			log.Fatalf("[Bind] Invalid bind address: %v", err)
+			panic(err)
+		} else {
+			bindAddress = &bindHost
+		}
+	}
+	if port != nil && *port > 0 {
+		if portNum, err := types.NewPort(*port); err != nil {
+			log.Fatalf("[Port] Invalid port number: %v", err)
+			panic(err)
+		} else {
+			portNumber = &portNum
+		}
+	}
+	config, err := config.LoadConfig(*configPath, bindAddress, portNumber)
 	if err != nil {
 		log.Fatalf("[Config] Failed to load configuration: %v", err)
 		panic(err)
 	} else {
 		log.Printf("[Config] Loaded configuration from %s", *configPath)
 	}
+
+	fmt.Printf("[Config] %+v\n", config)
 
 	for _, mcpServerConfig := range config.MCPServers {
 		if client, err := mcp.NewClient(mcpServerConfig); err != nil {

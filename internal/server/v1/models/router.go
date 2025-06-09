@@ -1,12 +1,11 @@
 package models
 
 import (
-	"github.com/go-chi/chi/v5"
+	"github.com/gorilla/mux"
 )
 
-func Router() chi.Router {
-	r := chi.NewRouter()
-	r.Get("/", ListModelsHandler)
-	r.Get("/{modelID}", GetModelHandler)
+func AddRoutes(r *mux.Router) *mux.Router {
+	r.HandleFunc("/", ListModelsHandler).Methods("GET")
+	r.HandleFunc("/{modelID}", GetModelHandler).Methods("GET")
 	return r
 }

@@ -1,11 +1,10 @@
 package chat
 
 import (
-	"github.com/go-chi/chi/v5"
+	"github.com/gorilla/mux"
 )
 
-func Router() chi.Router {
-	r := chi.NewRouter()
-	r.Post("/completions", ChatCompletionsHandler)
+func AddRoutes(r *mux.Router) *mux.Router {
+	r.HandleFunc("/completions", ChatCompletionsHandler).Methods("POST")
 	return r
 }

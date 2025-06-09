@@ -1,11 +1,14 @@
 package middleware
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
+	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/getkin/kin-openapi/routers"
 )
@@ -19,6 +22,38 @@ const (
 	RouteParamsKey ContextKey = "routeParams"
 )
 
+// func FindRoute(r *http.Request, openAPIRouter routers.Router, router mux.Router) (*routers.Route, map[string]string, error) {
+// 	var match mux.RouteMatch
+// 	if router.Match(r, &match) {
+// 		if err := match.MatchErr; err != nil {
+// 			// What then?
+// 		}
+
+// 		vars := match.Vars
+// 		route := *match.Route
+// 		route.Method = req.Method
+// 		route.Operation = route.Spec.Paths.Value(route.Path).GetOperation(route.Method)
+// 		return &route, vars, nil
+// 	}
+// 	switch match.MatchErr {
+// 	case nil:
+// 	case mux.ErrMethodMismatch:
+// 		return nil, nil, routers.ErrMethodNotAllowed
+// 	default: // What then?
+// 	}
+// }
+
+func PeekBody(r *http.Request) ([]byte, error) {
+	if bodyBytes, err := io.ReadAll(r.Body); err != nil {
+		return nil, fmt.Errorf("error reading request body: %w", err)
+	} else {
+		fmt.Printf("Request body: %s\n", string(bodyBytes))
+		r.Body.Close() // optional but polite
+		r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+		return bodyBytes, nil
+	}
+}
+
 func OpenAPIValidationMiddleware(router routers.Router) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -28,19 +63,36 @@ func OpenAPIValidationMiddleware(router routers.Router) func(http.Handler) http.
 				return
 			}
 
+			options := openapi3filter.Options{
+				MultiError:            true,
+				SkipSettingDefaults:   false,
+				IncludeResponseStatus: false,
+			}
+			options.WithCustomSchemaErrorFunc(func(err *openapi3.SchemaError) string {
+				fmt.Printf("Schema validation error: %+v %+v %+v\n", err.Value, err.SchemaField, err.Schema)
+				return fmt.Sprintf("Schema validation error: %+v %+v", err.Value, err.SchemaField)
+			})
+
 			input := &openapi3filter.RequestValidationInput{
 				Request:     r,
 				PathParams:  routeParams,
 				QueryParams: r.URL.Query(),
 				Route:       route,
-				Options: &openapi3filter.Options{
-					IncludeResponseStatus: true,
-				},
+				Options:     &options,
+			}
+			if err := openapi3filter.ValidateRequest(r.Context(), input); err != nil {
+				http.Error(w, "Request validation failed: "+err.Error(), http.StatusBadRequest)
+				return
 			}
 			ctx := r.Context()
 			if r.Body != nil {
-				var raw map[string]any
-				if err := json.NewDecoder(r.Body).Decode(&raw); err != nil {
+				var raw any
+				body, err := PeekBody(r)
+				if err != nil {
+					http.Error(w, "Error reading request body: "+err.Error(), http.StatusBadRequest)
+					return
+				}
+				if err := json.NewDecoder(io.NopCloser(bytes.NewBuffer(body))).Decode(&raw); err != nil {
 					http.Error(w, "Invalid JSON body: "+err.Error(), http.StatusBadRequest)
 					return
 				}
@@ -58,11 +110,6 @@ func OpenAPIValidationMiddleware(router routers.Router) func(http.Handler) http.
 			ctx = context.WithValue(ctx, RouteKey, route)
 			ctx = context.WithValue(ctx, RouteParamsKey, routeParams)
 			r = r.WithContext(ctx)
-
-			if err := openapi3filter.ValidateRequest(r.Context(), input); err != nil {
-				http.Error(w, "Request validation failed: "+err.Error(), http.StatusBadRequest)
-				return
-			}
 
 			next.ServeHTTP(w, r)
 		})

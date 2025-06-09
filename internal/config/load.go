@@ -18,9 +18,6 @@ func LoadConfig(path string, bindAddress *types.Host, port *types.Port) (*models
 	v.AutomaticEnv()
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	v.SetDefault("server.port", getEnvInt("BIND_PORT", 8080))
-	v.SetDefault("server.bind", getEnv("BIND_HOST", "0.0.0.0"))
-
 	v.SetConfigFile(path)
 	if err := v.ReadInConfig(); err != nil {
 		return nil, fmt.Errorf("failed to read config: %w", err)
@@ -39,6 +36,7 @@ func LoadConfig(path string, bindAddress *types.Host, port *types.Port) (*models
 	if err := json.Unmarshal(rawBytes, &cfg); err != nil {
 		return nil, err
 	}
+
 	validate := validator.New()
 	if err := validate.Struct(cfg); err != nil {
 		return nil, fmt.Errorf("validation error: %w", err)
