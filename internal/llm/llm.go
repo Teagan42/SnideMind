@@ -75,7 +75,7 @@ func (llm *LLM) BuildCompletionRequest(request types.ChatCompletionRequest) type
 	return body
 }
 
-func (llm *LLM) CallCompletion(request types.ChatCompletionRequest) (*types.ChatCompletionResponse, error) {
+func (llm *LLM) CallCompletion(request types.ChatCompletionRequest, w http.ResponseWriter) error {
 	headers := http.Header{
 		"Content-Type": {"application/json"},
 		"User-Agent":   {"SnideMind/LLMClient"},
@@ -90,16 +90,16 @@ func (llm *LLM) CallCompletion(request types.ChatCompletionRequest) (*types.Chat
 	}
 	urlJoin, err := url.JoinPath(llm.Config.BaseURL, "/v1/chat/completions")
 	if err != nil {
-		return nil, err
+		return err
 	}
 	llmUrl, err := url.Parse(urlJoin)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	requestBody, err := json.Marshal(llm.BuildCompletionRequest(request))
 	if err != nil {
-		return nil, err
+		return err
 	}
 	llmRequest := http.Request{
 		Method: http.MethodPost,
@@ -109,21 +109,27 @@ func (llm *LLM) CallCompletion(request types.ChatCompletionRequest) (*types.Chat
 	}
 	resp, err := http.DefaultClient.Do(&llmRequest)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return nil, LLMError{
+		w.WriteHeader(resp.StatusCode)
+		w.Write([]byte("LLM request failed with status: " + resp.Status))
+		return LLMError{
 			StatusCode: resp.StatusCode,
 			Message:    "LLM request failed",
 		}
 	}
 	var response types.ChatCompletionResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return nil, LLMError{
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Failed to decode LLM response: " + err.Error()))
+		return LLMError{
 			StatusCode: resp.StatusCode,
 			Message:    "Failed to decode LLM response",
 		}
 	}
-	return &response, nil
+	json.NewEncoder(w).Encode(response)
+	w.WriteHeader(http.StatusOK)
+	return nil
 }

@@ -47,7 +47,8 @@ func (s *Server) Start(llmClient *llm.LLM) error {
 		log.Fatalf("failed to create OpenAPI router: %v", err)
 	}
 	r.Use(middleware.OpenAPIValidationMiddleware(openAPIRouter))
-	v1.AddRoutes(r.PathPrefix("/v1").Subrouter(), llmClient)
+	r.Use(middleware.AddLLMMiddleware(*llmClient))
+	v1.AddRoutes(r.PathPrefix("/v1").Subrouter())
 
 	err = r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
 		pathTemplate, err := route.GetPathTemplate()

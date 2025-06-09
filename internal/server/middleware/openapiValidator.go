@@ -22,27 +22,6 @@ const (
 	RouteParamsKey ContextKey = "routeParams"
 )
 
-// func FindRoute(r *http.Request, openAPIRouter routers.Router, router mux.Router) (*routers.Route, map[string]string, error) {
-// 	var match mux.RouteMatch
-// 	if router.Match(r, &match) {
-// 		if err := match.MatchErr; err != nil {
-// 			// What then?
-// 		}
-
-// 		vars := match.Vars
-// 		route := *match.Route
-// 		route.Method = req.Method
-// 		route.Operation = route.Spec.Paths.Value(route.Path).GetOperation(route.Method)
-// 		return &route, vars, nil
-// 	}
-// 	switch match.MatchErr {
-// 	case nil:
-// 	case mux.ErrMethodMismatch:
-// 		return nil, nil, routers.ErrMethodNotAllowed
-// 	default: // What then?
-// 	}
-// }
-
 func PeekBody(r *http.Request) ([]byte, error) {
 	if bodyBytes, err := io.ReadAll(r.Body); err != nil {
 		return nil, fmt.Errorf("error reading request body: %w", err)
