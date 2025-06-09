@@ -1,10 +1,6 @@
 package models
 
-type ServerConfig struct {
-	Port int    `json:"port"`
-	Bind string `json:"bind"`
-}
-
 type Config struct {
-	Server ServerConfig `json:"server"`
+	Server     ServerConfig      `json:"server" yaml:"server" validate:"required,dive"`
+	MCPServers []MCPServerConfig `json:"mcp_servers" yaml:"mcp_servers" validate:"required,dive"`
 }

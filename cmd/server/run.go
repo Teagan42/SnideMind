@@ -2,67 +2,66 @@ package server
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
-	"time"
 
-	"github.com/redis/go-redis/v9"
+	"github.com/akamensky/argparse"
+	"github.com/teagan42/snidemind/internal/config"
+	"github.com/teagan42/snidemind/internal/mcp"
+	"github.com/teagan42/snidemind/internal/server"
+	"github.com/teagan42/snidemind/internal/types"
 )
 
-var (
-	ctx         = context.Background()
-	redisClient *redis.Client
-)
-
-func startWebServer(bind string, port int) {
-	addr := fmt.Sprintf("%s:%d", bind, port)
-	http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok"))
-	})
-	log.Printf("[HTTP] Listening on %s\n", addr)
-	if err := http.ListenAndServe(addr, nil); err != nil {
-		log.Fatalf("[HTTP] Failed to start server: %v", err)
-	}
-}
+var ctx = context.Background()
 
 func main() {
-	bind := flag.String("bind", getEnv("BIND", "0.0.0.0"), "bind address")
-	port := flag.Int("port", getEnvInt("PORT", 8080), "port number")
-	redisAddr := flag.String("redis", getEnv("REDIS_ADDR", "localhost:6379"), "redis address")
-	flag.Parse()
-
-	redisClient = redis.NewClient(&redis.Options{Addr: *redisAddr})
-	if err := redisClient.Ping(ctx).Err(); err != nil {
-		log.Fatalf("[Redis] Connection failed: %v", err)
+	parser := argparse.NewParser("snidemind", "Snidemind AI Tool CLI Daemon")
+	bind := parser.String("b", "bind", &argparse.Options{
+		Required: false,
+		Help:     "Address to bind the server to.",
+	})
+	port := parser.Int("p", "port", &argparse.Options{
+		Required: false,
+		Help:     "Port to run the server on.",
+	})
+	configPath := parser.String("c", "config", &argparse.Options{
+		Required: false,
+		Help:     "Path to the configuration file.",
+		Default:  "config.yaml",
+	})
+	if err := parser.Parse(os.Args); err != nil {
+		log.Fatalf("[Argparse] Failed to parse arguments: %v", err)
+		panic(err)
 	}
 
-	go startWebServer(*bind, *port)
+	// redisClient = redis.NewClient(&redis.Options{Addr: *redisAddr})
+	// if err := redisClient.Ping(ctx).Err(); err != nil {
+	// 	log.Fatalf("[Redis] Connection failed: %v", err)
+	// }
 
-	// Placeholder for daemon loop
-	log.Println("[main] MCPD CLI Daemon running...")
-	for {
-		time.Sleep(1 * time.Hour)
+	bindAddress, _ := types.NewHost(*bind)
+	portNumber, _ := types.NewPort(*port)
+
+	config, err := config.LoadConfig(*configPath, &bindAddress, &portNumber)
+	if err != nil {
+		log.Fatalf("[Config] Failed to load configuration: %v", err)
+		panic(err)
+	} else {
+		log.Printf("[Config] Loaded configuration from %s", *configPath)
 	}
-}
 
-func getEnv(key, fallback string) string {
-	if val := os.Getenv(key); val != "" {
-		return val
-	}
-	return fallback
-}
-
-func getEnvInt(key string, fallback int) int {
-	if val := os.Getenv(key); val != "" {
-		var out int
-		_, err := fmt.Sscanf(val, "%d", &out)
-		if err == nil {
-			return out
+	for _, mcpServerConfig := range config.MCPServers {
+		if client, err := mcp.NewClient(mcpServerConfig); err != nil {
+			log.Fatalf("[MCP] Failed to create client for server %s: %v", mcpServerConfig.Name, err)
+			panic(err)
+		} else {
+			log.Printf("[MCP] Created client for server %s at %s", mcpServerConfig.Name, mcpServerConfig.URL)
+			client.Start(ctx)
+			fmt.Printf("[MCP] Client for server %s started successfully\n", mcpServerConfig.Name)
 		}
 	}
-	return fallback
+
+	server := server.NewServer(config.Server)
+	server.Start()
 }
