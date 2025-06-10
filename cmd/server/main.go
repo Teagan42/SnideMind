@@ -10,8 +10,8 @@ import (
 	"github.com/teagan42/snidemind/internal/config"
 	"github.com/teagan42/snidemind/internal/llm"
 	"github.com/teagan42/snidemind/internal/mcp"
+	"github.com/teagan42/snidemind/internal/models"
 	"github.com/teagan42/snidemind/internal/server"
-	"github.com/teagan42/snidemind/internal/types"
 )
 
 var ctx = context.Background()
@@ -41,10 +41,10 @@ func main() {
 	// 	log.Fatalf("[Redis] Connection failed: %v", err)
 	// }
 
-	var bindAddress *types.Host
-	var portNumber *types.Port
+	var bindAddress *models.Host
+	var portNumber *models.Port
 	if bind != nil && *bind != "" {
-		if bindHost, err := types.NewHost(*bind); err != nil {
+		if bindHost, err := models.NewHost(*bind); err != nil {
 			log.Fatalf("[Bind] Invalid bind address: %v", err)
 			panic(err)
 		} else {
@@ -52,7 +52,7 @@ func main() {
 		}
 	}
 	if port != nil && *port > 0 {
-		if portNum, err := types.NewPort(*port); err != nil {
+		if portNum, err := models.NewPort(*port); err != nil {
 			log.Fatalf("[Port] Invalid port number: %v", err)
 			panic(err)
 		} else {
