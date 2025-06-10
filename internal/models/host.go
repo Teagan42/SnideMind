@@ -1,4 +1,4 @@
-package types
+package models
 
 // Package types provides common types used across the application.
 

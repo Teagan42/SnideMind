@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/teagan42/snidemind/internal/types"
+	"github.com/teagan42/snidemind/internal/models"
 )
 
 func ListModelsHandler(w http.ResponseWriter, r *http.Request) {
@@ -13,7 +13,7 @@ func ListModelsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var response = types.ModelListResponse{}
+	var response = models.ModelListResponse{}
 
 	json.NewEncoder(w).Encode(response)
 	w.WriteHeader(http.StatusOK)

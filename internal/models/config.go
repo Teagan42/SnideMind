@@ -2,8 +2,6 @@ package models
 
 import (
 	"fmt"
-
-	"github.com/teagan42/snidemind/internal/types"
 )
 
 type Config struct {
@@ -29,9 +27,9 @@ type LLMConfig struct {
 }
 
 type MCPBlacklist struct {
-	Tools     *types.RegexList `json:"tools,omitempty" yaml:"tools,omitempty" validate:"omitempty,dive,required"`
-	Prompts   *types.RegexList `json:"prompts,omitempty"  yaml:"prompts,omitempty" validate:"omitempty,dive,required"`
-	Resources *types.RegexList `json:"resources,omitempty" yaml:"resources,omitempty" validate:"omitempty,dive,required"`
+	Tools     *RegexList `json:"tools,omitempty" yaml:"tools,omitempty" validate:"omitempty,dive,required"`
+	Prompts   *RegexList `json:"prompts,omitempty"  yaml:"prompts,omitempty" validate:"omitempty,dive,required"`
+	Resources *RegexList `json:"resources,omitempty" yaml:"resources,omitempty" validate:"omitempty,dive,required"`
 }
 
 type MCPServerConfig struct {
@@ -42,12 +40,12 @@ type MCPServerConfig struct {
 }
 
 type ServerConfig struct {
-	Port types.Port `json:"port" yaml:"port" validate:"required"`
-	Bind types.Host `json:"bind" yaml:"bind" validate:"required"`
+	Port Port `json:"port" yaml:"port" validate:"required"`
+	Bind Host `json:"bind" yaml:"bind" validate:"required"`
 }
 
 func (b *MCPBlacklist) Validate() error {
-	for _, lst := range []*types.RegexList{b.Tools, b.Prompts, b.Resources} {
+	for _, lst := range []*RegexList{b.Tools, b.Prompts, b.Resources} {
 		if lst == nil {
 			continue
 		}

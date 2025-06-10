@@ -8,7 +8,6 @@ import (
 	"net/url"
 
 	"github.com/teagan42/snidemind/internal/models"
-	"github.com/teagan42/snidemind/internal/types"
 )
 
 type LLM struct {
@@ -30,8 +29,8 @@ func NewLLM(cfg models.LLMConfig) *LLM {
 	}
 }
 
-func (llm *LLM) BuildCompletionRequest(request types.ChatCompletionRequest) types.ChatCompletionRequest {
-	body := types.ChatCompletionRequest{
+func (llm *LLM) BuildCompletionRequest(request models.ChatCompletionRequest) models.ChatCompletionRequest {
+	body := models.ChatCompletionRequest{
 		Messages: request.Messages,
 		Model:    request.Model,
 	}
@@ -75,7 +74,7 @@ func (llm *LLM) BuildCompletionRequest(request types.ChatCompletionRequest) type
 	return body
 }
 
-func (llm *LLM) CallCompletion(request types.ChatCompletionRequest, w http.ResponseWriter) error {
+func (llm *LLM) CallCompletion(request models.ChatCompletionRequest, w http.ResponseWriter) error {
 	headers := http.Header{
 		"Content-Type": {"application/json"},
 		"User-Agent":   {"SnideMind/LLMClient"},
@@ -120,7 +119,7 @@ func (llm *LLM) CallCompletion(request types.ChatCompletionRequest, w http.Respo
 			Message:    "LLM request failed",
 		}
 	}
-	var response types.ChatCompletionResponse
+	var response models.ChatCompletionResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Failed to decode LLM response: " + err.Error()))

@@ -8,10 +8,9 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/spf13/viper"
 	"github.com/teagan42/snidemind/internal/models"
-	"github.com/teagan42/snidemind/internal/types"
 )
 
-func LoadConfig(path string, bindAddress *types.Host, port *types.Port) (*models.Config, error) {
+func LoadConfig(path string, bindAddress *models.Host, port *models.Port) (*models.Config, error) {
 	v := viper.New()
 
 	// Environment variable override

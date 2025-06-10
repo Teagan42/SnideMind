@@ -1,4 +1,4 @@
-package types
+package models
 
 type ChatMessage struct {
 	Role    string `json:"role"`
@@ -23,7 +23,7 @@ type ToolFunction struct {
 	Parameters  ToolFunctionParameters `json:"parameters"`
 }
 
-type Tool struct {
+type ToolSpec struct {
 	Type     string       `json:"type"`
 	Function ToolFunction `json:"function"`
 }
@@ -59,7 +59,7 @@ type ChatCompletionRequest struct {
 	ResponseFormat      string            `json:"response_format,omitempty"`
 	Stream              *bool             `json:"stream,omitempty"`
 	Temperature         *float64          `json:"temperature,omitempty"`
-	Tools               []Tool            `json:"tools,omitempty"`
+	Tools               []ToolSpec        `json:"tools,omitempty"`
 	TopLogProbs         int               `json:"top_logprobs,omitempty"`
 	TopP                *float64          `json:"top_p,omitempty"`
 	User                string            `json:"user,omitempty"`

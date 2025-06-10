@@ -3,8 +3,8 @@ package chat
 import (
 	"net/http"
 
+	"github.com/teagan42/snidemind/internal/models"
 	"github.com/teagan42/snidemind/internal/server/middleware"
-	"github.com/teagan42/snidemind/internal/types"
 )
 
 func ChatCompletionsHandler(w http.ResponseWriter, r *http.Request) {
@@ -13,7 +13,7 @@ func ChatCompletionsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := middleware.GetValidatedBody[*types.ChatCompletionRequest](r); err != nil {
+	if _, err := middleware.GetValidatedBody[*models.ChatCompletionRequest](r); err != nil {
 		http.Error(w, `{"error":"invalid request body"}`, http.StatusBadRequest)
 		return
 	}
@@ -25,7 +25,7 @@ func ChatCompletionsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"LLM not found in context"}`, http.StatusInternalServerError)
 		return
 	}
-	chatCompletion, err := middleware.GetValidatedBody[types.ChatCompletionRequest](r)
+	chatCompletion, err := middleware.GetValidatedBody[models.ChatCompletionRequest](r)
 	if err != nil {
 		http.Error(w, `{"error":"invalid request body"}`, http.StatusBadRequest)
 		return
