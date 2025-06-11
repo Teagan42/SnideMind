@@ -1,14 +1,28 @@
 package extracttags
 
 import (
+	"github.com/teagan42/snidemind/config"
 	"github.com/teagan42/snidemind/pipeline"
+	"go.uber.org/fx"
 )
 
 type ExtractTags struct {
 }
 
-func NewExtractTags() *ExtractTags {
-	return &ExtractTags{}
+type Params struct {
+	fx.In
+	Config config.PipelineStepConfig
+}
+
+type Result struct {
+	fx.Out
+	Stage *ExtractTags `name:"stags"`
+}
+
+func NewExtractTags(p Params) (*Result, error) {
+	return &Result{
+		Stage: &ExtractTags{},
+	}, nil
 }
 
 func (s *ExtractTags) Name() string {

@@ -1,12 +1,28 @@
 package storememory
 
-import "github.com/teagan42/snidemind/pipeline"
+import (
+	"github.com/teagan42/snidemind/config"
+	"github.com/teagan42/snidemind/pipeline"
+	"go.uber.org/fx"
+)
 
 type StoreMemory struct {
 }
 
-func NewStoreMemory() *StoreMemory {
-	return &StoreMemory{}
+type Params struct {
+	fx.In
+	Config config.PipelineStepConfig
+}
+
+type Result struct {
+	fx.Out
+	Stage *StoreMemory `name:"stage"`
+}
+
+func NewStoreMemory(p Params) (*Result, error) {
+	return &Result{
+		Stage: &StoreMemory{},
+	}, nil
 }
 
 func (s *StoreMemory) Name() string {

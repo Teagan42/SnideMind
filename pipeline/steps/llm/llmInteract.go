@@ -1,12 +1,31 @@
 package llm
 
-import "github.com/teagan42/snidemind/pipeline"
+import (
+	"github.com/teagan42/snidemind/config"
+	"github.com/teagan42/snidemind/pipeline"
+	"go.uber.org/fx"
+)
 
 type LLM struct {
+	config.LLMConfig
 }
 
-func NewLLM() *LLM {
-	return &LLM{}
+type Params struct {
+	fx.In
+	Config config.PipelineStepConfig
+}
+
+type Result struct {
+	fx.Out
+	Stage *LLM `name:"stage"`
+}
+
+func NewLLM(p Params) (*Result, error) {
+	return &Result{
+		Stage: &LLM{
+			LLMConfig: *p.Config.LLM,
+		},
+	}, nil
 }
 
 func (s *LLM) Name() string {

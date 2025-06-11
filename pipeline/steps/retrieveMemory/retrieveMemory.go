@@ -1,11 +1,27 @@
 package retrievememory
 
-import "github.com/teagan42/snidemind/pipeline"
+import (
+	"github.com/teagan42/snidemind/config"
+	"github.com/teagan42/snidemind/pipeline"
+	"go.uber.org/fx"
+)
 
 type RetrieveMemory struct{}
 
-func NewRetrieveMemory() *RetrieveMemory {
-	return &RetrieveMemory{}
+type Params struct {
+	fx.In
+	Config config.PipelineStepConfig
+}
+
+type Result struct {
+	fx.Out
+	Stage *RetrieveMemory `name:"stage"`
+}
+
+func NewRetrieveMemory(p Params) (*Result, error) {
+	return &Result{
+		Stage: &RetrieveMemory{},
+	}, nil
 }
 
 func (s *RetrieveMemory) Process(input *pipeline.PipelineMessage) (*pipeline.PipelineMessage, error) {

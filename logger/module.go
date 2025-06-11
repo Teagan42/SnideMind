@@ -1,10 +1,10 @@
-package llm
+package logger
 
 import "go.uber.org/fx"
 
 var Module = fx.Module(
-	"llm",
+	"logger",
 	fx.Provide(
-		NewLLM,
+		NewLogger,
 	),
 )

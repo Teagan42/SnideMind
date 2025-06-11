@@ -1,12 +1,12 @@
-package retrievememory
+package pipeline
 
 import (
 	"go.uber.org/fx"
 )
 
 var Module = fx.Module(
-	"retrievememory",
+	"Pipeline",
 	fx.Provide(
-		NewRetrieveMemory,
+		NewPipeline,
 	),
 )

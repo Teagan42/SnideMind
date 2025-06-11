@@ -1,12 +1,28 @@
 package reducetools
 
-import "github.com/teagan42/snidemind/pipeline"
+import (
+	"github.com/teagan42/snidemind/config"
+	"github.com/teagan42/snidemind/pipeline"
+	"go.uber.org/fx"
+)
 
 type ReduceTools struct {
 }
 
-func NewReduceTools() *ReduceTools {
-	return &ReduceTools{}
+type Params struct {
+	fx.In
+	Config config.PipelineStepConfig
+}
+
+type Result struct {
+	fx.Out
+	Stage *ReduceTools `name:"stage"`
+}
+
+func NewReduceTools(p Params) (*Result, error) {
+	return &Result{
+		Stage: &ReduceTools{},
+	}, nil
 }
 
 func (s *ReduceTools) Process(input *pipeline.PipelineMessage) (*pipeline.PipelineMessage, error) {

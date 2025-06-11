@@ -1,10 +1,8 @@
-package llm
+package mcp
 
 import "go.uber.org/fx"
 
 var Module = fx.Module(
-	"llm",
-	fx.Provide(
-		NewLLM,
-	),
+	"mcp",
+	fx.Provide(),
 )

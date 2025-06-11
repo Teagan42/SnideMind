@@ -1,16 +1,28 @@
 package fork
 
-import "github.com/teagan42/snidemind/pipeline"
+import (
+	"github.com/teagan42/snidemind/config"
+	"github.com/teagan42/snidemind/pipeline"
+	"go.uber.org/fx"
+)
 
 type ForkPipelineStage struct {
 }
 
 type Params struct {
-	Stage *ForkPipelineStage
+	fx.In
+	Config config.PipelineStepConfig
 }
 
-func NewFork() *ForkPipelineStage {
-	return &ForkPipelineStage{}
+type Result struct {
+	fx.Out
+	Stage *ForkPipelineStage `name:"stage"`
+}
+
+func NewFork(p Params) (*Result, error) {
+	return &Result{
+		Stage: &ForkPipelineStage{},
+	}, nil
 }
 
 func (f *ForkPipelineStage) Name() string {
