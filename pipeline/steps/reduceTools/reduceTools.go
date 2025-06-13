@@ -27,7 +27,8 @@ type Result struct {
 }
 
 type ReduceToolsFactory struct {
-	Logger *zap.Logger
+	Logger  *zap.Logger
+	ToolSet []models.MCPTool
 }
 
 func (f ReduceToolsFactory) Name() string {
@@ -35,30 +36,8 @@ func (f ReduceToolsFactory) Name() string {
 }
 func (f ReduceToolsFactory) Build(config config.PipelineStepConfig, stepFactories map[string]models.PipelineStepFactory) (models.PipelineStep, error) {
 	return &ReduceTools{
-		Logger: f.Logger.Named("ReduceTools"),
-		ToolSet: []models.MCPTool{
-			models.MCPTool{
-				ToolMetadata: models.ToolMetadata{
-					Name:        "Plex New Media",
-					Description: "Retrieves new media from Plex",
-					Tags:        &[]string{"plex", "media", "media.new"},
-				},
-			},
-			models.MCPTool{
-				ToolMetadata: models.ToolMetadata{
-					Name:        "Plex Search",
-					Description: "Searches Plex for media",
-					Tags:        &[]string{"plex", "media", "media.search", "media.movies", "media.tv"},
-				},
-			},
-			models.MCPTool{
-				ToolMetadata: models.ToolMetadata{
-					Name:        "Home Assistant Entity Action",
-					Description: "Performs an action on a Home Assistant entity",
-					Tags:        &[]string{"home", "home.automation"},
-				},
-			},
-		}, // Initialize with an empty tool set
+		Logger:  f.Logger.Named("ReduceTools"),
+		ToolSet: f.ToolSet,
 	}, nil
 }
 
@@ -66,6 +45,29 @@ func NewReduceTools(p Params) (Result, error) {
 	return Result{
 		Factory: ReduceToolsFactory{
 			Logger: p.Logger.Named("ReduceToolsFactory"),
+			ToolSet: []models.MCPTool{
+				{
+					ToolMetadata: models.ToolMetadata{
+						Name:        "Plex New Media",
+						Description: "Retrieves new media from Plex",
+						Tags:        &[]string{"plex", "media", "media.new"},
+					},
+				},
+				{
+					ToolMetadata: models.ToolMetadata{
+						Name:        "Plex Search",
+						Description: "Searches Plex for media",
+						Tags:        &[]string{"plex", "media", "media.search", "media.movies", "media.tv"},
+					},
+				},
+				{
+					ToolMetadata: models.ToolMetadata{
+						Name:        "Home Assistant Entity Action",
+						Description: "Performs an action on a Home Assistant entity",
+						Tags:        &[]string{"home", "home.automation"},
+					},
+				},
+			},
 		},
 	}, nil
 }
