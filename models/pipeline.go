@@ -11,7 +11,7 @@ import (
 type PipelineMessage struct {
 	Request        *ChatCompletionRequest
 	Tags           *map[string]string      // Tags associated with the message
-	Tools          *[]string               // Tools associated with the message
+	Tools          *[]MCPTool              // Tools associated with the message
 	Prompts        *[]string               // Prompts associated with the message
 	Memories       *[]string               // Memories associated with the message
 	Knowledge      *[]string               // Knowledge associated with the message
@@ -28,7 +28,7 @@ func (p *PipelineMessage) Combine(message *PipelineMessage) {
 	}
 	if message.Tools != nil {
 		if p.Tools == nil {
-			p.Tools = &[]string{}
+			p.Tools = &[]MCPTool{}
 		}
 		*p.Tools = append(*p.Tools, (*message.Tools)...)
 	}

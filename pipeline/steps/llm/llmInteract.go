@@ -55,18 +55,18 @@ func (s LLM) Name() string {
 	return "LLM"
 }
 
-func (s LLM) buildRequestBody(input models.ChatCompletionRequest) models.ChatCompletionRequest {
+func (s LLM) buildRequestBody(input *models.PipelineMessage) models.ChatCompletionRequest {
 	reqBody := models.ChatCompletionRequest{
-		Messages:         input.Messages,
-		Model:            input.Model,
-		FrequencyPenalty: input.FrequencyPenalty,
-		N:                input.N,
+		Messages:         input.Request.Messages,
+		Model:            input.Request.Model,
+		FrequencyPenalty: input.Request.FrequencyPenalty,
+		N:                input.Request.N,
 		// Tools:             input.Tools,
-		ParallelToolCalls: input.ParallelToolCalls,
-		PresencePenalty:   input.PresencePenalty,
-		Stream:            input.Stream,
-		Temperature:       input.Temperature,
-		TopP:              input.TopP,
+		ParallelToolCalls: input.Request.ParallelToolCalls,
+		PresencePenalty:   input.Request.PresencePenalty,
+		Stream:            input.Request.Stream,
+		Temperature:       input.Request.Temperature,
+		TopP:              input.Request.TopP,
 	}
 	if s.FrequencyPenalty != nil {
 		reqBody.FrequencyPenalty = s.FrequencyPenalty
@@ -90,6 +90,21 @@ func (s LLM) buildRequestBody(input models.ChatCompletionRequest) models.ChatCom
 		reqBody.TopP = s.TopP
 	}
 
+	if input.Tools != nil && len(*input.Tools) > 0 {
+		tools := make([]models.Tool, len(*input.Tools))
+		for i, tool := range *input.Tools {
+			tools[i] = models.Tool{
+				Type: "function",
+				Function: models.ToolFunction{
+					Name:        tool.ToolMetadata.Name,
+					Description: tool.ToolMetadata.Description,
+					Parameters:  models.ToolFunctionParameters{},
+				},
+			}
+		}
+		reqBody.Tools = &tools
+	}
+
 	return reqBody
 }
 
@@ -106,7 +121,7 @@ func (s LLM) streamResponse(input *models.PipelineMessage, body io.Reader) (*mod
 			resp = &models.ChatCompletionResponse{
 				ID: "stream",
 				Choices: []models.ChatCompletionChoice{
-					models.ChatCompletionChoice{
+					{
 						FinishReason: "stop",
 						Index:        0,
 						Message: models.ChatMessage{
@@ -177,7 +192,7 @@ func (s LLM) bufferResponse(input *models.PipelineMessage, body io.Reader) (*mod
 func (s LLM) Process(previous *[]models.PipelineStep, input *models.PipelineMessage) (*models.PipelineMessage, error) {
 	s.Logger.Info("Processing", zap.String("model", *s.Model), zap.String("baseURL", s.BaseURL))
 
-	bodyBytes, err := json.Marshal(s.buildRequestBody(*input.Request))
+	bodyBytes, err := json.Marshal(s.buildRequestBody(input))
 	if err != nil {
 		s.Logger.Error("Error marshalling request", zap.Error(err))
 		return nil, err

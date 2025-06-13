@@ -10,8 +10,10 @@ pipeline:
         base_url: http://10.0.10.12:11434/v1
     - type: fork
       fork:
-        - type: reduceTools
-        - type: retrieveKnowledge
+        - steps:
+            - type: reduceTools
+        - steps:
+            - type: retrieveMemory
     - type: llm
       llm:
         model: myaniu/qwen2.5-1m:14b

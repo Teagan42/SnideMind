@@ -13,9 +13,10 @@ type ModelListResponse struct {
 }
 
 type ChatMessage struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
-	Name    string `json:"name,omitempty"`
+	Role      string                            `json:"role"`
+	Content   string                            `json:"content"`
+	Name      string                            `json:"name,omitempty"`
+	ToolCalls *[]ChatCompletionsMessageToolCall `json:"tool_calls,omitempty"`
 }
 
 type FunctionCall struct {
@@ -118,8 +119,9 @@ type ChatCompletionResponseMessageAnnotation struct {
 }
 
 type ChatCompletionResponseMessage struct {
-	Content string `json:"content"`
-	Refusal bool   `json:"refusal,omitempty"`
+	Content   string                           `json:"content"`
+	Refusal   bool                             `json:"refusal,omitempty"`
+	ToolCalls []ChatCompletionsMessageToolCall `json:"tool_calls,omitempty"`
 }
 
 type ChatCompletionChoice struct {

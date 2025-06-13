@@ -62,7 +62,7 @@ func (p *Pipeline) Process(r *http.Request, w http.ResponseWriter) (models.Pipel
 	input := &models.PipelineMessage{
 		Request:        &body,
 		Tags:           &map[string]string{},
-		Tools:          &[]string{},
+		Tools:          &[]models.MCPTool{},
 		Prompts:        &[]string{},
 		Memories:       &[]string{},
 		Knowledge:      &[]string{},
