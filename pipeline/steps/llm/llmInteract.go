@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/teagan42/snidemind/config"
-	"github.com/teagan42/snidemind/schema"
+	"github.com/teagan42/snidemind/models"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -25,7 +25,7 @@ type Params struct {
 
 type Result struct {
 	fx.Out
-	Factory schema.PipelineStepFactory `group:"pipelineStepFactory"`
+	Factory models.PipelineStepFactory `group:"pipelineStepFactory"`
 }
 
 type LLMFactory struct {
@@ -35,7 +35,7 @@ type LLMFactory struct {
 func (f LLMFactory) Name() string {
 	return "llm"
 }
-func (f LLMFactory) Build(config config.PipelineStepConfig) (schema.PipelineStep, error) {
+func (f LLMFactory) Build(config config.PipelineStepConfig) (models.PipelineStep, error) {
 	return &LLM{
 		LLMConfig: *config.LLM,
 		Logger:    f.Logger,
@@ -54,7 +54,7 @@ func (s LLM) Name() string {
 	return "LLM"
 }
 
-func (s LLM) Process(previous *[]schema.PipelineStep, input *schema.PipelineMessage) (*schema.PipelineMessage, error) {
+func (s LLM) Process(previous *[]models.PipelineStep, input *models.PipelineMessage) (*models.PipelineMessage, error) {
 	s.Logger.Info("Processing", zap.String("model", *s.Model), zap.String("baseURL", s.BaseURL))
 	bodyBytes, err := json.Marshal(input.Request)
 	if err != nil {
@@ -88,7 +88,7 @@ func (s LLM) Process(previous *[]schema.PipelineStep, input *schema.PipelineMess
 				s.Logger.Error("Error reading response body", zap.Error(err))
 				return nil, err
 			}
-			var response schema.ChatCompletionResponse
+			var response models.ChatCompletionResponse
 			if err := json.Unmarshal(body, &response); err != nil {
 				s.Logger.Error("Error unmarshalling response", zap.Error(err))
 				return nil, err

@@ -1,4 +1,4 @@
-package schema
+package models
 
 import "github.com/teagan42/snidemind/config"
 
