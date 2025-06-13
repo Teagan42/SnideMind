@@ -128,8 +128,8 @@ type MCPServerConfig struct {
 }
 
 type ServerConfig struct {
-	Port Port `json:"port" yaml:"port" validate:"required"`
-	Bind Host `json:"bind" yaml:"bind" validate:"required"`
+	Port Port  `json:"port" yaml:"port" validate:"required"`
+	Bind *Host `json:"bind" yaml:"bind" validate:"omitempty"`
 }
 
 func (b *MCPBlacklist) Validate() error {

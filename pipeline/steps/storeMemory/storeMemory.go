@@ -2,7 +2,7 @@ package storememory
 
 import (
 	"github.com/teagan42/snidemind/config"
-	"github.com/teagan42/snidemind/pipeline"
+	"github.com/teagan42/snidemind/schema"
 	"go.uber.org/fx"
 )
 
@@ -16,20 +16,29 @@ type Params struct {
 
 type Result struct {
 	fx.Out
-	Stage *StoreMemory `name:"stage"`
+	Factory schema.PipelineStepFactory `group:"pipelineStepFactory"`
 }
 
-func NewStoreMemory(p Params) (*Result, error) {
-	return &Result{
-		Stage: &StoreMemory{},
+type StoreMemoryFactory struct{}
+
+func (f StoreMemoryFactory) Name() string {
+	return "storeMemory"
+}
+func (f StoreMemoryFactory) Build(config config.PipelineStepConfig) (schema.PipelineStep, error) {
+	return &StoreMemory{}, nil
+}
+
+func NewStoreMemory() (Result, error) {
+	return Result{
+		Factory: StoreMemoryFactory{},
 	}, nil
 }
 
-func (s *StoreMemory) Name() string {
+func (s StoreMemory) Name() string {
 	return "StoreMemory"
 }
 
-func (s *StoreMemory) Process(input *pipeline.PipelineMessage) (*pipeline.PipelineMessage, error) {
+func (s StoreMemory) Process(previous *[]schema.PipelineStep, input *schema.PipelineMessage) (*schema.PipelineMessage, error) {
 	// Placeholder for memory storage logic
 	// In a real implementation, this would process the input string and store it in memory
 	// For now, we'll just return nil to indicate success

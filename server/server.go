@@ -31,19 +31,24 @@ type Params struct {
 
 type Result struct {
 	fx.Out
-	Server *Server     `name:"server"`
+	Server *Server
 	Router *mux.Router `name:"rootRouter"`
 }
 
 func NewServer(p Params) (Result, error) {
 	serverConfig := p.Config.Server
-	addr := fmt.Sprintf("%s:%d", serverConfig.Bind, serverConfig.Port)
+	bindAddr := ""
+	if serverConfig.Bind != nil && *serverConfig.Bind != "" {
+		bindAddr = string(*serverConfig.Bind)
+	}
+	addr := fmt.Sprintf("%s:%d", bindAddr, serverConfig.Port)
+	httpServer := http.Server{
+		Addr: addr,
+	}
 	server := &Server{
-		Config: serverConfig,
-		HttpServer: &http.Server{
-			Addr: addr,
-		},
-		Router: mux.NewRouter(),
+		Config:     serverConfig,
+		HttpServer: &httpServer,
+		Router:     mux.NewRouter(),
 	}
 	p.Lifecycle.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
@@ -63,6 +68,9 @@ func NewServer(p Params) (Result, error) {
 			return nil
 		},
 	})
+
+	// server.Router.Use(middleware.LogRequestMiddleware())
+	server.HttpServer.Handler = server.Router
 
 	return Result{
 		Server: server,
@@ -90,15 +98,11 @@ func (s *Server) GetOpenAPIRouter() (*routers.Router, error) {
 }
 
 func (s *Server) Start(ctx context.Context) error {
-	addr := fmt.Sprintf("%s:%d", s.Config.Bind, s.Config.Port)
-	log.Printf("Starting server on %s", addr)
 	if openAPIRouter, err := s.GetOpenAPIRouter(); err != nil {
 		log.Fatalf("failed to get OpenAPI router: %v", err)
 	} else {
 		s.Router.Use(middleware.OpenAPIValidationMiddleware(*openAPIRouter))
 	}
-
-	s.Router.PathPrefix("/v1").Subrouter()
 	return s.HttpServer.ListenAndServe()
 }
 

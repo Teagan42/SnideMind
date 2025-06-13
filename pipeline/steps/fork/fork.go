@@ -2,7 +2,7 @@ package fork
 
 import (
 	"github.com/teagan42/snidemind/config"
-	"github.com/teagan42/snidemind/pipeline"
+	"github.com/teagan42/snidemind/schema"
 	"go.uber.org/fx"
 )
 
@@ -16,20 +16,29 @@ type Params struct {
 
 type Result struct {
 	fx.Out
-	Stage *ForkPipelineStage `name:"stage"`
+	Factory schema.PipelineStepFactory `group:"pipelineStepFactory"`
 }
 
-func NewFork(p Params) (*Result, error) {
-	return &Result{
-		Stage: &ForkPipelineStage{},
+type ForkPipelineStageFactory struct{}
+
+func (f ForkPipelineStageFactory) Name() string {
+	return "fork"
+}
+func (f ForkPipelineStageFactory) Build(config config.PipelineStepConfig) (schema.PipelineStep, error) {
+	return &ForkPipelineStage{}, nil
+}
+
+func NewFork() (Result, error) {
+	return Result{
+		Factory: ForkPipelineStageFactory{},
 	}, nil
 }
 
-func (f *ForkPipelineStage) Name() string {
+func (f ForkPipelineStage) Name() string {
 	return "Fork Stage"
 }
 
-func (f *ForkPipelineStage) Process(input *pipeline.PipelineMessage) (*pipeline.PipelineMessage, error) {
+func (f ForkPipelineStage) Process(previous *[]schema.PipelineStep, input *schema.PipelineMessage) (*schema.PipelineMessage, error) {
 	// Placeholder for fork logic
 	// In a real implementation, this would process the input and fork it into multiple outputs
 	// For now, we'll just return the input as is

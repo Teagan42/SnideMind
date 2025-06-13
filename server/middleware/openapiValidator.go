@@ -11,6 +11,7 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/getkin/kin-openapi/routers"
+	"go.uber.org/zap"
 )
 
 type ContextKey string
@@ -22,11 +23,10 @@ const (
 	RouteParamsKey ContextKey = "routeParams"
 )
 
-func PeekBody(r *http.Request) ([]byte, error) {
+func PeekBody(log *zap.Logger, r *http.Request) ([]byte, error) {
 	if bodyBytes, err := io.ReadAll(r.Body); err != nil {
 		return nil, fmt.Errorf("error reading request body: %w", err)
 	} else {
-		fmt.Printf("Request body: %s\n", string(bodyBytes))
 		r.Body.Close() // optional but polite
 		r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 		return bodyBytes, nil
@@ -34,6 +34,7 @@ func PeekBody(r *http.Request) ([]byte, error) {
 }
 
 func OpenAPIValidationMiddleware(router routers.Router) func(http.Handler) http.Handler {
+	logger := zap.L().Named("OpenAPIValidationMiddleware")
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			route, routeParams, err := router.FindRoute(r)
@@ -44,7 +45,7 @@ func OpenAPIValidationMiddleware(router routers.Router) func(http.Handler) http.
 
 			options := openapi3filter.Options{
 				MultiError:            true,
-				SkipSettingDefaults:   false,
+				SkipSettingDefaults:   true,
 				IncludeResponseStatus: false,
 			}
 			options.WithCustomSchemaErrorFunc(func(err *openapi3.SchemaError) string {
@@ -66,7 +67,7 @@ func OpenAPIValidationMiddleware(router routers.Router) func(http.Handler) http.
 			ctx := r.Context()
 			if r.Body != nil {
 				var raw any
-				body, err := PeekBody(r)
+				body, err := PeekBody(logger, r)
 				if err != nil {
 					http.Error(w, "Error reading request body: "+err.Error(), http.StatusBadRequest)
 					return

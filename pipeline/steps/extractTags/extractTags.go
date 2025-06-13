@@ -2,7 +2,7 @@ package extracttags
 
 import (
 	"github.com/teagan42/snidemind/config"
-	"github.com/teagan42/snidemind/pipeline"
+	"github.com/teagan42/snidemind/schema"
 	"go.uber.org/fx"
 )
 
@@ -16,20 +16,29 @@ type Params struct {
 
 type Result struct {
 	fx.Out
-	Stage *ExtractTags `name:"stags"`
+	Factory schema.PipelineStepFactory `group:"pipelineStepFactory"`
 }
 
-func NewExtractTags(p Params) (*Result, error) {
-	return &Result{
-		Stage: &ExtractTags{},
+type ExtractTagsFactory struct{}
+
+func (f ExtractTagsFactory) Name() string {
+	return "extractTags"
+}
+func (f ExtractTagsFactory) Build(config config.PipelineStepConfig) (schema.PipelineStep, error) {
+	return &ExtractTags{}, nil
+}
+
+func NewExtractTags() (Result, error) {
+	return Result{
+		Factory: ExtractTagsFactory{},
 	}, nil
 }
 
-func (s *ExtractTags) Name() string {
+func (s ExtractTags) Name() string {
 	return "ExtractTags"
 }
 
-func (s *ExtractTags) Process(input *pipeline.PipelineMessage) (*pipeline.PipelineMessage, error) {
+func (s ExtractTags) Process(previous *[]schema.PipelineStep, input *schema.PipelineMessage) (*schema.PipelineMessage, error) {
 	// Placeholder for tag extraction logic
 	// In a real implementation, this would parse the input string and extract tags
 	// For now, we'll just return a dummy slice of tags

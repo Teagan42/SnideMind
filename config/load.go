@@ -55,7 +55,7 @@ func LoadConfig(p Params) (Result, error) {
 	}
 
 	if p.BindAddress != nil {
-		cfg.Server.Bind = *p.BindAddress
+		cfg.Server.Bind = p.BindAddress
 	}
 	if p.Port != nil {
 		cfg.Server.Port = *p.Port
