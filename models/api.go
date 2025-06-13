@@ -136,3 +136,15 @@ type ChatCompletionResponse struct {
 	Model   string                 `json:"model"`
 	Object  string                 `json:"object"`
 }
+
+type EmbeddingData struct {
+	Object    string    `json:"object" validate:"required,oneof=embedding"`
+	Embedding []float64 `json:"embedding" validate:"required,dive"`
+	Index     int       `json:"index" validate:"required"`
+}
+
+type EmbeddingResponse struct {
+	Data   []EmbeddingData `json:"data" validate:"required,dive"`
+	Model  string          `json:"model" validate:"required"`
+	Object string          `json:"object" validate:"required,oneof=list"`
+}

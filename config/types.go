@@ -105,10 +105,18 @@ type LLMConfig struct {
 	ParallelToolCalls *bool             `json:"parallel_tool_calls,omitempty" yaml:"parallel_tool_calls,omitempty" validate:"omitempty"`
 }
 
+type EmbedderConfig struct {
+	Model        string  `json:"model,omitempty" yaml:"model,omitempty" validate:"omitempty,required"`
+	APIKey       *string `json:"api_key,omitempty" yaml:"api_key,omitempty" validate:"omitempty,required"`
+	APIKeyHeader *string `json:"api_key_header,omitempty" yaml:"api_key,omitempty" validate:"omitempty,required"`
+	URL          string  `json:"base_url,omitempty" yaml:"base_url,omitempty" validate:"omitempty,url"`
+}
+
 type PipelineStepConfig struct {
-	Type string            `json:"type" yaml:"type" validate:"required,oneof=extractTags fork llm reduceTools retrieveMemory storeMemory"`
-	LLM  *LLMConfig        `json:"llm,omitempty" yaml:"llm,omitempty" validate:"omitempty"`
-	Fork *[]PipelineConfig `json:"fork,omitempty" yaml:"fork,omitempty" validate:"omitempty"`
+	Type     string            `json:"type" yaml:"type" validate:"required,oneof=extractTags fork llm reduceTools retrieveMemory storeMemory"`
+	LLM      *LLMConfig        `json:"llm,omitempty" yaml:"llm,omitempty" validate:"omitempty"`
+	Fork     *[]PipelineConfig `json:"fork,omitempty" yaml:"fork,omitempty" validate:"omitempty"`
+	Embedder *EmbedderConfig   `json:"embedder,omitempty" yaml:"embedder,omitempty" validate:"omitempty"`
 }
 
 type PipelineConfig struct {

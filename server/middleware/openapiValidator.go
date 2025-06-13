@@ -33,6 +33,16 @@ func PeekBody(log *zap.Logger, r *http.Request) ([]byte, error) {
 	}
 }
 
+func PeekResponse(log *zap.Logger, r *http.Response) ([]byte, error) {
+	if bodyBytes, err := io.ReadAll(r.Body); err != nil {
+		return nil, fmt.Errorf("error reading response body: %w", err)
+	} else {
+		r.Body.Close() // optional but polite
+		r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+		return bodyBytes, nil
+	}
+}
+
 func OpenAPIValidationMiddleware(router routers.Router) func(http.Handler) http.Handler {
 	logger := zap.L().Named("OpenAPIValidationMiddleware")
 	return func(next http.Handler) http.Handler {
