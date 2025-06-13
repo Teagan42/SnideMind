@@ -3,12 +3,14 @@ package models
 import (
 	"net/http"
 
+	"maps"
+
 	"github.com/teagan42/snidemind/config"
 )
 
 type PipelineMessage struct {
 	Request        *ChatCompletionRequest
-	Tags           *[]string               // Tags associated with the message
+	Tags           *map[string]string      // Tags associated with the message
 	Tools          *[]string               // Tools associated with the message
 	Prompts        *[]string               // Prompts associated with the message
 	Memories       *[]string               // Memories associated with the message
@@ -20,9 +22,9 @@ type PipelineMessage struct {
 func (p *PipelineMessage) Combine(message *PipelineMessage) {
 	if message.Tags != nil {
 		if p.Tags == nil {
-			p.Tags = &[]string{}
+			p.Tags = &map[string]string{}
 		}
-		*p.Tags = append(*p.Tags, (*message.Tags)...)
+		maps.Copy((*p.Tags), *message.Tags)
 	}
 	if message.Tools != nil {
 		if p.Tools == nil {

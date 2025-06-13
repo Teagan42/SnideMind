@@ -9,6 +9,7 @@ type TagNode struct {
 	ID          string
 	Name        string
 	Description string
+	Vector      *[]float64
 	ParentID    *string
 }
 
@@ -52,6 +53,11 @@ func CosineSimilarity(a, b []float64) float64 {
 		normB += b[i] * b[i]
 	}
 	return dot / (math.Sqrt(normA) * math.Sqrt(normB))
+}
+
+type Embedding struct {
+	ID        string
+	Embedding []float64
 }
 
 type ScoredTag struct {

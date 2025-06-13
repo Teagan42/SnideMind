@@ -79,10 +79,10 @@ func (s ExtractTags) Process(previous *[]models.PipelineStep, input *models.Pipe
 	} else {
 		s.Embedder.Logger.Info("Extracted tags", zap.String("tags", fmt.Sprintf("%v", tags)))
 		if input.Tags == nil {
-			input.Tags = &[]string{}
+			input.Tags = &map[string]string{}
 		}
 		for _, tag := range tags {
-			*input.Tags = append(*input.Tags, tag.Tag.ID)
+			(*input.Tags)[tag.Tag.ID] = tag.Tag.ID
 		}
 	}
 	return input, nil

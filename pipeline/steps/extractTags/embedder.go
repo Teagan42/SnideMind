@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"maps"
 	"net/http"
 	"net/url"
+	"slices"
 	"sort"
 
 	"github.com/teagan42/snidemind/models"
-	"github.com/teagan42/snidemind/server/middleware"
 	"go.uber.org/zap"
 )
 
@@ -19,7 +20,7 @@ type Embedder struct {
 	Model        string
 	APIKey       *string
 	APIKeyHeader *string
-	Cache        map[string][]float64
+	Cache        map[string]TagNode
 	Client       *http.Client
 }
 
@@ -30,22 +31,36 @@ func NewEmbedder(logger *zap.Logger, endpoint, model string, apiKey *string, api
 		Model:        model,
 		APIKey:       apiKey,
 		APIKeyHeader: apiKeyHeader,
-		Cache:        make(map[string][]float64),
+		Cache:        make(map[string]TagNode),
 		Client:       &http.Client{},
 	}
 	embedder.Logger.Info("Generating tag embeddings", zap.String("model", model), zap.String("endpoint", endpoint))
+	tags := make([]TagNode, 0, len(TagTree))
+	batch := make([]string, 0, len(TagTree))
 	for _, tag := range TagTree {
-		if vector, error := embedder.Embed(tag.Description); error == nil {
-			embedder.Cache[tag.ID] = vector
-		} else {
-			embedder.Logger.Error("Failed to embed tag description", zap.String("tagID", tag.ID), zap.Error(error))
+		tags = append(tags, tag)
+		batch = append(batch, tag.Description)
+	}
+
+	if vectors, err := embedder.Embed(batch...); err != nil {
+		embedder.Logger.Error("Failed to embed tag descriptions", zap.Error(err))
+		return nil
+	} else {
+		for i, vector := range vectors {
+			embedder.Cache[tags[i].ID] = TagNode{
+				ID:          tags[i].ID,
+				Name:        tags[i].Name,
+				Description: tags[i].Description,
+				Vector:      &vector,
+				ParentID:    tags[i].ParentID,
+			}
 		}
 	}
 
 	return &embedder
 }
 
-func (e *Embedder) Embed(text string) ([]float64, error) {
+func (e *Embedder) Embed(text ...string) ([][]float64, error) {
 	payload, _ := json.Marshal(map[string]interface{}{
 		"input": text,
 		"model": e.Model,
@@ -67,11 +82,6 @@ func (e *Embedder) Embed(text string) ([]float64, error) {
 		return nil, err
 	}
 
-	if body, err := middleware.PeekResponse(e.Logger, resp); err != nil {
-		return nil, err
-	} else {
-		e.Logger.Info("Embedding response", zap.String("body", string(body)))
-	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
@@ -85,64 +95,56 @@ func (e *Embedder) Embed(text string) ([]float64, error) {
 	if len(result.Data) == 0 {
 		return nil, errors.New("embedding data response is empty")
 	}
-	if len(result.Data[0].Embedding) == 0 {
-		return nil, errors.New("embedding vector is empty")
+
+	vectors := make([][]float64, len(result.Data))
+	for i, data := range result.Data {
+		vectors[i] = data.Embedding
 	}
-	return result.Data[0].Embedding, nil
+
+	return vectors, nil
 }
 
 func (e *Embedder) ExtractTagsWithWeights(userInput string) ([]ScoredTag, error) {
 	e.Logger.Info("Extracting tags with weights", zap.String("input", userInput))
-	inputVec, err := e.Embed(userInput)
-	if err != nil {
+	var inputVec []float64
+	if vec, err := e.Embed(userInput); err != nil {
 		return nil, err
+	} else {
+		inputVec = vec[0]
 	}
 
 	tagScores := map[string]ScoredTag{}
-	tagVecs := e.Cache
-	tagMap := make(map[string]TagNode)
-	for _, tag := range TagTree {
-		tagMap[tag.ID] = tag
-	}
-
 	// Embed all tag descriptions
-	for id, vec := range tagVecs {
-		score := CosineSimilarity(inputVec, vec)
+	for id, vec := range e.Cache {
+		score := CosineSimilarity(inputVec, *vec.Vector)
 		e.Logger.Info("Cosine similarity", zap.String("tagID", id), zap.Float64("score", score))
 		if score >= 0.6 {
 			tagScores[id] = ScoredTag{
-				Tag:   tagMap[id],
+				Tag:   vec,
 				Score: score,
 			}
 		}
 	}
+
 	e.Logger.Info("Tag scores", zap.Any("tagScores", tagScores))
 	// Bubble up parent scores
-	for id, tagScore := range tagScores {
-		if tag, err := getTagByID(id); err == nil {
-			if tag.ParentID != nil {
-				parentID := *tag.ParentID
-				parentScore := tagScores[parentID]
-				if tagScore.Score*0.8 > parentScore.Score {
-					tagScores[parentID] = ScoredTag{
-						Tag:   parentScore.Tag,
-						Score: tagScore.Score * 0.8,
-					}
+	for _, tagScore := range tagScores {
+		if tagScore.Tag.ParentID != nil {
+			parentID := *tagScore.Tag.ParentID
+			parentScore := tagScores[parentID]
+			if tagScore.Score*0.8 > parentScore.Score {
+				tagScores[parentID] = ScoredTag{
+					Tag:   parentScore.Tag,
+					Score: tagScore.Score * 0.8,
 				}
 			}
-		} else {
-			return nil, err
 		}
 	}
-
-	var result []ScoredTag
-	for _, tagScore := range tagScores {
-		result = append(result, tagScore)
-	}
-
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].Score > result[j].Score
+	e.Logger.Info("Updated tag scores with parent scores", zap.Any("tagScores", tagScores))
+	values := slices.Collect(maps.Values(tagScores))
+	sort.Slice(values, func(i, j int) bool {
+		return values[i].Score > values[j].Score
 	})
 
-	return result, nil
+	return values, nil
 }

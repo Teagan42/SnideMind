@@ -61,7 +61,7 @@ func (p *Pipeline) Process(r *http.Request, w http.ResponseWriter) (models.Pipel
 	p.Logger.Info("Validated body", zap.Any("body", body))
 	input := &models.PipelineMessage{
 		Request:        &body,
-		Tags:           &[]string{},
+		Tags:           &map[string]string{},
 		Tools:          &[]string{},
 		Prompts:        &[]string{},
 		Memories:       &[]string{},
