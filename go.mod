@@ -9,10 +9,10 @@ require (
 	github.com/getkin/kin-openapi v0.132.0
 	github.com/go-playground/validator/v10 v10.26.0
 	github.com/gorilla/mux v1.8.1
-	github.com/mark3labs/mcp-go v0.31.0
+	github.com/mark3labs/mcp-go v0.32.0
 	github.com/spf13/viper v1.20.1
 	go.uber.org/fx v1.24.0
-	go.uber.org/zap v1.26.0
+	go.uber.org/zap v1.27.0
 )
 
 require (
