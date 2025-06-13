@@ -89,19 +89,20 @@ type Config struct {
 }
 
 type LLMConfig struct {
-	Model            *string           `json:"model,omitempty" yaml:"model,omitempty" validate:"omitempty,required"`
-	APIKey           *string           `json:"api_key,omitempty" yaml:"api_key,omitempty" validate:"omitempty,required"`
-	APIKeyHeader     *string           `json:"api_key_header,omitempty" yaml:"api_key,omitempty" validate:"omitempty,required=api_key"`
-	BaseURL          string            `json:"base_url,omitempty" yaml:"base_url,omitempty" validate:"omitempty,url"`
-	Timeout          *int              `json:"timeout,omitempty" yaml:"timeout,omitempty" validate:"omitempty,min=1"`
-	Headers          map[string]string `json:"headers,omitempty" yaml:"headers,omitempty" validate:"omitempty,dive,keys,required"`
-	Temperature      *float64          `json:"temperature,omitempty" yaml:"temperature,omitempty" validate:"omitempty,min=0,max=1"`
-	MaxTokens        *int64            `json:"max_tokens,omitempty" yaml:"max_tokens,omitempty" validate:"omitempty,min=1"`
-	TopP             *float64          `json:"top_p,omitempty" yaml:"top_p,omitempty" validate:"omitempty,min=0,max=1"`
-	FrequencyPenalty *float64          `json:"frequency_penalty,omitempty" yaml:"frequency_penalty,omitempty" validate:"omitempty,min=0,max=1"`
-	PresencePenalty  *float64          `json:"presence_penalty,omitempty" yaml:"presence_penalty,omitempty" validate:"omitempty,min=0,max=1"`
-	N                *int              `json:"n,omitempty" yaml:"n,omitempty" validate:"omitempty,min=1"`
-	Stream           *bool             `json:"stream,omitempty" yaml:"stream,omitempty" validate:"omitempty"`
+	Model             *string           `json:"model,omitempty" yaml:"model,omitempty" validate:"omitempty,required"`
+	APIKey            *string           `json:"api_key,omitempty" yaml:"api_key,omitempty" validate:"omitempty,required"`
+	APIKeyHeader      *string           `json:"api_key_header,omitempty" yaml:"api_key,omitempty" validate:"omitempty,required=api_key"`
+	BaseURL           string            `json:"base_url,omitempty" yaml:"base_url,omitempty" validate:"omitempty,url"`
+	Timeout           *int              `json:"timeout,omitempty" yaml:"timeout,omitempty" validate:"omitempty,min=1"`
+	Headers           map[string]string `json:"headers,omitempty" yaml:"headers,omitempty" validate:"omitempty,dive,keys,required"`
+	Temperature       *float64          `json:"temperature,omitempty" yaml:"temperature,omitempty" validate:"omitempty,min=0,max=1"`
+	MaxTokens         *int64            `json:"max_tokens,omitempty" yaml:"max_tokens,omitempty" validate:"omitempty,min=1"`
+	TopP              *float64          `json:"top_p,omitempty" yaml:"top_p,omitempty" validate:"omitempty,min=0,max=1"`
+	FrequencyPenalty  *float64          `json:"frequency_penalty,omitempty" yaml:"frequency_penalty,omitempty" validate:"omitempty,min=0,max=1"`
+	PresencePenalty   *float64          `json:"presence_penalty,omitempty" yaml:"presence_penalty,omitempty" validate:"omitempty,min=0,max=1"`
+	N                 *int              `json:"n,omitempty" yaml:"n,omitempty" validate:"omitempty,min=1"`
+	Stream            *bool             `json:"stream,omitempty" yaml:"stream,omitempty" validate:"omitempty"`
+	ParallelToolCalls *bool             `json:"parallel_tool_calls,omitempty" yaml:"parallel_tool_calls,omitempty" validate:"omitempty"`
 }
 
 type PipelineStepConfig struct {

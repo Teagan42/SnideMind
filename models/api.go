@@ -65,13 +65,13 @@ type ChatCompletionRequest struct {
 	LogProbs            bool              `json:"logprobs,omitempty"`
 	MaxCompletionTokens *int64            `json:"max_completion_tokens,omitempty"`
 	N                   *int              `json:"n,omitempty"`
-	ParallelToolCalls   bool              `json:"parallel_tool_calls,omitempty"`
+	ParallelToolCalls   *bool             `json:"parallel_tool_calls,omitempty"`
 	PresencePenalty     *float64          `json:"presence_penalty,omitempty"`
 	ReasoningEffort     string            `json:"reasoning_effort,omitempty"`
 	ResponseFormat      string            `json:"response_format,omitempty"`
 	Stream              *bool             `json:"stream,omitempty"`
 	Temperature         *float64          `json:"temperature,omitempty"`
-	Tools               []Tool            `json:"tools,omitempty"`
+	Tools               *[]Tool           `json:"tools,omitempty"`
 	TopLogProbs         int               `json:"top_logprobs,omitempty"`
 	TopP                *float64          `json:"top_p,omitempty"`
 	User                string            `json:"user,omitempty"`

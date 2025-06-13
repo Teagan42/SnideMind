@@ -1,12 +1,12 @@
 package chat
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/teagan42/snidemind/config"
 	"github.com/teagan42/snidemind/pipeline"
 	"github.com/teagan42/snidemind/server/utils"
+	utilities "github.com/teagan42/snidemind/utils"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -37,26 +37,13 @@ func (c *ChatCompletionsController) ServeHTTP(w http.ResponseWriter, r *http.Req
 		return
 	}
 	c.log.Info("Processing pipeline")
-	message, err := c.pipeline.Process(r)
+	message, err := utilities.TimeFunc2WithErr("pipeline.Process", c.pipeline.Process)(r, w)
 	if err != nil {
 		c.log.Error("Error processing pipeline", zap.Error(err))
 		http.Error(w, `{"error":"internal server error"}`, http.StatusInternalServerError)
 		return
 	}
 	c.log.Info("Pipeline processed successfully", zap.Any("message", message))
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	respBody, err := json.Marshal(message)
-	if err != nil {
-		c.log.Error("Error unmarshalling response", zap.Error(err))
-		http.Error(w, `{"error":"internal server error"}`, http.StatusInternalServerError)
-		return
-	}
-	if _, err := w.Write(respBody); err != nil {
-		c.log.Error("Error writing JSON response", zap.Error(err))
-		http.Error(w, `{"error":"internal server error"}`, http.StatusInternalServerError)
-		return
-	}
 }
 
 func (c *ChatCompletionsController) Pattern() string {

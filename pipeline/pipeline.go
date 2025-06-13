@@ -26,12 +26,7 @@ func NewPipeline(p Params) *Pipeline {
 	steps := []models.PipelineStep{}
 	for _, step := range p.Config.Pipeline.Steps {
 		if factory, ok := p.StepFactories[step.Type]; ok {
-			stepConfig := config.PipelineStepConfig{
-				Type: step.Type,
-				LLM:  step.LLM,
-				Fork: step.Fork,
-			}
-			if s, err := factory.Build(stepConfig); err != nil {
+			if s, err := factory.Build(step, p.StepFactories); err != nil {
 				p.Logger.Error("Error building pipeline step", zap.Error(err))
 				continue
 			} else {
@@ -56,7 +51,7 @@ func (p *Pipeline) AddStep(stage models.PipelineStep, index *int) {
 	}
 }
 
-func (p *Pipeline) Process(r *http.Request) (models.PipelineMessage, error) {
+func (p *Pipeline) Process(r *http.Request, w http.ResponseWriter) (models.PipelineMessage, error) {
 	p.Logger.Info("Processing pipeline for request", zap.String("method", r.Method), zap.String("url", r.URL.String()))
 	body, err := middleware.GetValidatedBody[models.ChatCompletionRequest](r)
 	if err != nil {
@@ -65,12 +60,13 @@ func (p *Pipeline) Process(r *http.Request) (models.PipelineMessage, error) {
 	}
 	p.Logger.Info("Validated body", zap.Any("body", body))
 	input := &models.PipelineMessage{
-		Request:   &body,
-		Tags:      &[]string{},
-		Tools:     &[]string{},
-		Prompts:   &[]string{},
-		Memories:  &[]string{},
-		Knowledge: &[]string{},
+		Request:        &body,
+		Tags:           &[]string{},
+		Tools:          &[]string{},
+		Prompts:        &[]string{},
+		Memories:       &[]string{},
+		Knowledge:      &[]string{},
+		ResponseWriter: w,
 	}
 	var previous *[]models.PipelineStep
 	for _, stage := range p.Steps {

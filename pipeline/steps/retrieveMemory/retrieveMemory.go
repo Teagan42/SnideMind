@@ -23,7 +23,7 @@ type RetrieveMemoryFactory struct{}
 func (f RetrieveMemoryFactory) Name() string {
 	return "retrieveMemory"
 }
-func (f RetrieveMemoryFactory) Build(config config.PipelineStepConfig) (models.PipelineStep, error) {
+func (f RetrieveMemoryFactory) Build(config config.PipelineStepConfig, stepFactories map[string]models.PipelineStepFactory) (models.PipelineStep, error) {
 	return &RetrieveMemory{}, nil
 }
 

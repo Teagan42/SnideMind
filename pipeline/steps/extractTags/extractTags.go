@@ -24,7 +24,7 @@ type ExtractTagsFactory struct{}
 func (f ExtractTagsFactory) Name() string {
 	return "extractTags"
 }
-func (f ExtractTagsFactory) Build(config config.PipelineStepConfig) (models.PipelineStep, error) {
+func (f ExtractTagsFactory) Build(config config.PipelineStepConfig, stepFactories map[string]models.PipelineStepFactory) (models.PipelineStep, error) {
 	return &ExtractTags{}, nil
 }
 
@@ -35,7 +35,7 @@ func NewExtractTags() (Result, error) {
 }
 
 func (s ExtractTags) Name() string {
-	return "ExtractTags"
+	return "extractTags"
 }
 
 func (s ExtractTags) Process(previous *[]models.PipelineStep, input *models.PipelineMessage) (*models.PipelineMessage, error) {

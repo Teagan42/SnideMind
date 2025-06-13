@@ -1,6 +1,7 @@
 package llm
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -35,7 +36,7 @@ type LLMFactory struct {
 func (f LLMFactory) Name() string {
 	return "llm"
 }
-func (f LLMFactory) Build(config config.PipelineStepConfig) (models.PipelineStep, error) {
+func (f LLMFactory) Build(config config.PipelineStepConfig, stepFactories map[string]models.PipelineStepFactory) (models.PipelineStep, error) {
 	return &LLM{
 		LLMConfig: *config.LLM,
 		Logger:    f.Logger,
@@ -54,9 +55,129 @@ func (s LLM) Name() string {
 	return "LLM"
 }
 
+func (s LLM) buildRequestBody(input models.ChatCompletionRequest) models.ChatCompletionRequest {
+	reqBody := models.ChatCompletionRequest{
+		Messages:         input.Messages,
+		Model:            input.Model,
+		FrequencyPenalty: input.FrequencyPenalty,
+		N:                input.N,
+		// Tools:             input.Tools,
+		ParallelToolCalls: input.ParallelToolCalls,
+		PresencePenalty:   input.PresencePenalty,
+		Stream:            input.Stream,
+		Temperature:       input.Temperature,
+		TopP:              input.TopP,
+	}
+	if s.FrequencyPenalty != nil {
+		reqBody.FrequencyPenalty = s.FrequencyPenalty
+	}
+	if s.N != nil {
+		reqBody.N = s.N
+	}
+	if s.ParallelToolCalls != nil {
+		reqBody.ParallelToolCalls = s.ParallelToolCalls
+	}
+	if s.PresencePenalty != nil {
+		reqBody.PresencePenalty = s.PresencePenalty
+	}
+	if s.Stream != nil {
+		reqBody.Stream = s.Stream
+	}
+	if s.Temperature != nil {
+		reqBody.Temperature = s.Temperature
+	}
+	if s.TopP != nil {
+		reqBody.TopP = s.TopP
+	}
+
+	return reqBody
+}
+
+func (s LLM) streamResponse(input *models.PipelineMessage, body io.Reader) (*models.PipelineMessage, error) {
+	w := input.ResponseWriter
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	var resp *models.ChatCompletionResponse = nil
+	scanner := bufio.NewScanner(body)
+	for scanner.Scan() {
+		line := scanner.Text()
+		s.Logger.Info("Stream chunk", zap.String("chunk", line))
+		if resp == nil {
+			resp = &models.ChatCompletionResponse{
+				ID: "stream",
+				Choices: []models.ChatCompletionChoice{
+					models.ChatCompletionChoice{
+						FinishReason: "stop",
+						Index:        0,
+						Message: models.ChatMessage{
+							Role:    "assistant",
+							Content: "",
+						},
+					},
+				},
+				Created: 0,
+				Model:   *s.Model,
+				Object:  "chat.completion",
+			}
+		}
+		if line != "data: [DONE]" {
+			if len(line) > 6 && line[:6] == "data: " {
+				resp.Choices[0].Message.Content = resp.Choices[0].Message.Content + line[6:]
+			}
+		}
+		if _, err := fmt.Fprintf(w, "%s\n", line); err != nil {
+			s.Logger.Error("Write error during stream", zap.Error(err))
+			return nil, err
+		}
+		if flusher, ok := w.(http.Flusher); ok {
+			flusher.Flush()
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		s.Logger.Error("Stream scanner error", zap.Error(err))
+		return nil, err
+	}
+
+	input.Response = resp
+
+	w.WriteHeader(http.StatusOK)
+	if flusher, ok := w.(http.Flusher); ok {
+		flusher.Flush()
+	}
+
+	return input, nil
+}
+
+func (s LLM) bufferResponse(input *models.PipelineMessage, body io.Reader) (*models.PipelineMessage, error) {
+	data, err := io.ReadAll(body)
+	if err != nil {
+		s.Logger.Error("Read error", zap.Error(err))
+		return nil, err
+	}
+	s.Logger.Info("Buffered response", zap.ByteString("data", data))
+
+	w := input.ResponseWriter
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if _, err := w.Write(data); err != nil {
+		s.Logger.Error("Write error", zap.Error(err))
+		return nil, err
+	}
+
+	var resp models.ChatCompletionResponse
+	if err := json.Unmarshal(data, &resp); err != nil {
+		s.Logger.Error("Unmarshal error", zap.Error(err))
+		return nil, err
+	}
+	input.Response = &resp
+
+	return input, nil
+}
+
 func (s LLM) Process(previous *[]models.PipelineStep, input *models.PipelineMessage) (*models.PipelineMessage, error) {
 	s.Logger.Info("Processing", zap.String("model", *s.Model), zap.String("baseURL", s.BaseURL))
-	bodyBytes, err := json.Marshal(input.Request)
+
+	bodyBytes, err := json.Marshal(s.buildRequestBody(*input.Request))
 	if err != nil {
 		s.Logger.Error("Error marshalling request", zap.Error(err))
 		return nil, err
@@ -71,8 +192,8 @@ func (s LLM) Process(previous *[]models.PipelineStep, input *models.PipelineMess
 		if s.APIKey != nil && s.APIKeyHeader != nil {
 			req.Header.Set(*s.APIKeyHeader, *s.APIKey)
 		}
-		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Accept", "application/json")
+		req.Header.Set("Content-Type", "application/json")
 		s.Logger.Info("Sending request", zap.String("url", url), zap.ByteString("body", bodyBytes))
 		if resp, err := client.Do(req); err != nil {
 			s.Logger.Error("Error sending request", zap.Error(err))
@@ -83,20 +204,17 @@ func (s LLM) Process(previous *[]models.PipelineStep, input *models.PipelineMess
 				s.Logger.Error("Error response from LLM", zap.String("status", resp.Status))
 				return nil, fmt.Errorf("error: %s", resp.Status)
 			}
-			body, err := io.ReadAll(resp.Body)
+			var respMsg *models.PipelineMessage
+			if (s.Stream != nil && *s.Stream) || (input.Request.Stream != nil && *input.Request.Stream) {
+				respMsg, err = s.streamResponse(input, resp.Body)
+			} else {
+				respMsg, err = s.bufferResponse(input, resp.Body)
+			}
 			if err != nil {
 				s.Logger.Error("Error reading response body", zap.Error(err))
 				return nil, err
 			}
-			var response models.ChatCompletionResponse
-			if err := json.Unmarshal(body, &response); err != nil {
-				s.Logger.Error("Error unmarshalling response", zap.Error(err))
-				return nil, err
-			}
-			s.Logger.Info("Received response", zap.String("response", string(body)))
-			input.Response = &response
+			return respMsg, nil
 		}
 	}
-
-	return input, nil
 }

@@ -24,7 +24,7 @@ type ReduceToolsFactory struct{}
 func (f ReduceToolsFactory) Name() string {
 	return "reduceTools"
 }
-func (f ReduceToolsFactory) Build(config config.PipelineStepConfig) (models.PipelineStep, error) {
+func (f ReduceToolsFactory) Build(config config.PipelineStepConfig, stepFactories map[string]models.PipelineStepFactory) (models.PipelineStep, error) {
 	return &ReduceTools{}, nil
 }
 
@@ -35,7 +35,7 @@ func NewReduceTools() (Result, error) {
 }
 
 func (s ReduceTools) Name() string {
-	return "ReduceTools"
+	return "reduceTools"
 }
 
 func (s ReduceTools) Process(previous *[]models.PipelineStep, input *models.PipelineMessage) (*models.PipelineMessage, error) {

@@ -4,6 +4,10 @@ server:
 mcp_servers: []
 pipeline:
   steps:
+    - type: fork
+      fork:
+        - type: reduceTools
+        - type: retrieveKnowledge
     - type: llm
       llm:
         model: myaniu/qwen2.5-1m:14b
