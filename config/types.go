@@ -83,9 +83,9 @@ func (r RegexList) MarshalYAML() (interface{}, error) {
 }
 
 type Config struct {
-	Server     ServerConfig      `json:"server" yaml:"server" validate:"required"`
-	MCPServers []MCPServerConfig `json:"mcp_servers" yaml:"mcp_servers" validate:"required"`
-	Pipeline   PipelineConfig    `json:"pipeline,omitempty" yaml:"pipeline,omitempty" validate:"omitempty"`
+	Server     ServerConfig       `json:"server" yaml:"server" validate:"required"`
+	MCPServers *[]MCPServerConfig `json:"mcp_servers" yaml:"mcp_servers" validate:"omitempty,dive"`
+	Pipeline   *PipelineConfig    `json:"pipeline,omitempty" yaml:"pipeline,omitempty" validate:"omitempty,dive"`
 }
 
 type LLMConfig struct {
@@ -137,8 +137,8 @@ type MCPServerConfig struct {
 }
 
 type ServerConfig struct {
-	Port Port  `json:"port" yaml:"port" validate:"required"`
-	Bind *Host `json:"bind" yaml:"bind" validate:"omitempty"`
+	Port int     `json:"port" yaml:"port" validate:"required"`
+	Bind *string `json:"bind" yaml:"bind" validate:"omitempty"`
 }
 
 func (b *MCPBlacklist) Validate() error {

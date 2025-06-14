@@ -3,7 +3,6 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/spf13/viper"
@@ -12,9 +11,9 @@ import (
 
 type Params struct {
 	fx.In
-	ConfigPath  string `name:"configPath"`
-	BindAddress *Host  `name:"bindAddress"`
-	Port        *Port  `name:"port"`
+	ConfigPath  string  `name:"configPath"`
+	BindAddress *string `name:"bindAddress"`
+	Port        *int    `name:"port"`
 }
 
 type Result struct {
@@ -25,10 +24,6 @@ type Result struct {
 func LoadConfig(p Params) (Result, error) {
 	result := Result{}
 	v := viper.New()
-
-	// Environment variable override
-	v.AutomaticEnv()
-	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	v.SetConfigFile(p.ConfigPath)
 	if err := v.ReadInConfig(); err != nil {
@@ -42,11 +37,11 @@ func LoadConfig(p Params) (Result, error) {
 
 	rawBytes, err := json.Marshal(cfgRaw)
 	if err != nil {
-		return result, fmt.Errorf("failed to marshal config to JSON: %w", err)
+		return result, fmt.Errorf("failed to marshal config to raw JSON: %w", err)
 	}
 	var cfg Config
 	if err := json.Unmarshal(rawBytes, &cfg); err != nil {
-		return result, err
+		return result, fmt.Errorf("failed to unmarshal config to Config JSON: %w", err)
 	}
 
 	validate := validator.New()

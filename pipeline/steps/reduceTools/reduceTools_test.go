@@ -108,7 +108,7 @@ func TestReduceTools_Process_MatchingTags(t *testing.T) {
 		Logger:  logger,
 		ToolSet: []models.MCPTool{tool1, tool2},
 	}
-	tags := map[string]string{"tag1": "v", "tag3": "v"}
+	tags := map[string]string{"tag1": "tag1", "tag3": "tag3"}
 	input := &models.PipelineMessage{
 		Tags: &tags,
 	}
@@ -143,7 +143,7 @@ func TestReduceTools_Process_PartialMatch(t *testing.T) {
 		Logger:  logger,
 		ToolSet: []models.MCPTool{tool1, tool2},
 	}
-	tags := map[string]string{"tag2": "v"}
+	tags := map[string]string{"tag2": "tag2"}
 	input := &models.PipelineMessage{
 		Tags: &tags,
 	}
