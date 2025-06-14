@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/teagan42/snidemind/config"
@@ -52,12 +53,15 @@ func (p *Pipeline) AddStep(stage models.PipelineStep, index *int) {
 }
 
 func (p *Pipeline) Process(r *http.Request, w http.ResponseWriter) (models.PipelineMessage, error) {
+	fmt.Printf("Processing pipeline for request: %s %s\n", r.Method, r.URL.String())
 	p.Logger.Info("Processing pipeline for request", zap.String("method", r.Method), zap.String("url", r.URL.String()))
 	body, err := middleware.GetValidatedBody[models.ChatCompletionRequest](r)
 	if err != nil {
+		fmt.Printf("Error getting validated body: %v\n", err)
 		p.Logger.Error("Error getting validated body", zap.Error(err))
 		return *new(models.PipelineMessage), err // Return zero value of OUT and the error
 	}
+	fmt.Printf("Validated body: %v\n", body)
 	p.Logger.Info("Validated body", zap.Any("body", body))
 	input := &models.PipelineMessage{
 		Request:        &body,
@@ -70,11 +74,14 @@ func (p *Pipeline) Process(r *http.Request, w http.ResponseWriter) (models.Pipel
 	}
 	var previous *[]models.PipelineStep
 	for _, stage := range p.Steps {
+		fmt.Printf("Processing stage: %s\n", stage.Name())
 		p.Logger.Info("Processing stage", zap.String("stage", stage.Name()))
 		if input, err = stage.Process(previous, input); err != nil {
+			fmt.Printf("Error processing stage: %s, error: %v\n", stage.Name(), err)
 			p.Logger.Error("Error processing stage", zap.String("stage", stage.Name()), zap.Error(err))
 			return *new(models.PipelineMessage), err // Return zero value of OUT and the error
 		}
+		fmt.Printf("Stage processed successfully: %s\n", stage.Name())
 		p.Logger.Info("Stage processed successfully", zap.String("stage", stage.Name()))
 		previous = &[]models.PipelineStep{stage} // Update previous to the current stage
 	}

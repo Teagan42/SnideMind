@@ -113,6 +113,7 @@ func GetValidatedBody[T any](r *http.Request) (T, error) {
 		return zero, fmt.Errorf("no validated body in context")
 	}
 
+	fmt.Printf("GetValidatedBody: %T\n", val)
 	rawMap, ok := val.(map[string]any)
 	if !ok {
 		return zero, fmt.Errorf("unexpected type in context")
