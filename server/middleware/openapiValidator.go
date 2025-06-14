@@ -97,7 +97,7 @@ func OpenAPIValidationMiddleware(router routers.Router) func(http.Handler) http.
 				}
 				ctx = context.WithValue(ctx, QueryKey, rawQuery)
 			}
-			ctx = context.WithValue(ctx, RouteKey, route)
+			ctx = context.WithValue(ctx, RouteKey, *route)
 			ctx = context.WithValue(ctx, RouteParamsKey, routeParams)
 			r = r.WithContext(ctx)
 

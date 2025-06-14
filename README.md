@@ -1,3 +1,5 @@
+![coverage](https://raw.githubusercontent.com/teagan42/snidemind/badges/.badges/main/coverage.svg)
+
 # 🧠 SnideMind
 
 Runs your AI pipeline. Judges your life choices while doing it.
