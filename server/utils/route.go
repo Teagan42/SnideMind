@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"net/http"
 
 	"go.uber.org/fx"
@@ -21,6 +22,7 @@ func ProvideRoutes(routeGroup string, routeConstructors ...interface{}) fx.Optio
 			fx.ResultTags(`group:"`+routeGroup+`Routes"`),
 		))
 	}
+	fmt.Printf("Annotated Routes: %v\n", annotatedRoutes)
 	return fx.Provide(
 		annotatedRoutes...,
 	)
