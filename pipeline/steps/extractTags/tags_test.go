@@ -54,3 +54,50 @@ func TestTagTree_ParentChildRelationship(t *testing.T) {
 		}
 	}
 }
+func TestTagTree_NotEmpty(t *testing.T) {
+	if len(TagTree) == 0 {
+		t.Fatal("TagTree should not be empty")
+	}
+}
+
+func TestTagTree_ParentIDsAreNotSelf(t *testing.T) {
+	for _, tag := range TagTree {
+		if tag.ParentID != nil && *tag.ParentID == tag.ID {
+			t.Errorf("Tag %s has ParentID equal to its own ID", tag.ID)
+		}
+	}
+}
+
+func TestTagTree_ParentIDsAreConsistent(t *testing.T) {
+	idSet := make(map[string]struct{})
+	for _, tag := range TagTree {
+		idSet[tag.ID] = struct{}{}
+	}
+	for _, tag := range TagTree {
+		if tag.ParentID != nil {
+			if _, ok := idSet[*tag.ParentID]; !ok {
+				t.Errorf("Tag %s has ParentID %s which does not exist", tag.ID, *tag.ParentID)
+			}
+		}
+	}
+}
+
+func TestTagTree_NoDuplicateNames(t *testing.T) {
+	nameSet := make(map[string]struct{})
+	for _, tag := range TagTree {
+		if _, exists := nameSet[tag.Name]; exists {
+			t.Errorf("Duplicate tag Name found: %s", tag.Name)
+		}
+		nameSet[tag.Name] = struct{}{}
+	}
+}
+
+func TestTagTree_NoDuplicateDescriptions(t *testing.T) {
+	descSet := make(map[string]struct{})
+	for _, tag := range TagTree {
+		if _, exists := descSet[tag.Description]; exists {
+			t.Errorf("Duplicate tag Description found: %s", tag.Description)
+		}
+		descSet[tag.Description] = struct{}{}
+	}
+}

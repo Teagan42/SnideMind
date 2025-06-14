@@ -1,7 +1,6 @@
 package extracttags
 
 import (
-	"fmt"
 	"math"
 )
 
@@ -40,7 +39,7 @@ var TagTree = []TagNode{
 	{ID: "memory.research", Name: "Research Memory", Description: "Memory related to research", ParentID: ptr("memory")},
 	{ID: "announcements", Name: "Announcements", Description: "Announcements and updates"},
 	{ID: "announcements.updates", Name: "Updates", Description: "Updates to previous announcements", ParentID: ptr("announcements")},
-	{ID: "announcements.alerts", Name: "Alerts", Description: "Urgent alert announcements", ParentID: ptr("announcements")},
+	{ID: "announcements.alerts", Name: "Alert Announcements", Description: "Urgent alert announcements", ParentID: ptr("announcements")},
 }
 
 func ptr(s string) *string { return &s }
@@ -63,18 +62,4 @@ type Embedding struct {
 type ScoredTag struct {
 	Tag   TagNode
 	Score float64
-}
-
-func getTagByID(id string) (*TagNode, error) {
-	for _, tag := range TagTree {
-		if tag.ID == id {
-			return &TagNode{
-				ID:          tag.ID,
-				Name:        tag.Name,
-				Description: tag.Description,
-				ParentID:    tag.ParentID,
-			}, nil
-		}
-	}
-	return nil, fmt.Errorf("tag with ID %s not found", id)
 }

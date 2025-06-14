@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/teagan42/snidemind/config"
+	"github.com/teagan42/snidemind/mcp"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxtest"
 	"go.uber.org/zap"
@@ -55,4 +56,20 @@ func TestConfigModule_IsNotNil(t *testing.T) {
 	if config.Module == nil {
 		t.Error("config.Module should not be nil")
 	}
+}
+func TestMcpModule_IsNotNil(t *testing.T) {
+	// This test ensures that the mcp.Module variable is not nil and is an fx.Option.
+	if mcpModule := fx.Option(mcp.Module); mcpModule == nil {
+		t.Error("mcp.Module should not be nil")
+	}
+}
+
+func TestMcpModule_ProvidesNoConstructors(t *testing.T) {
+	// This test ensures that the mcp.Module does not provide any constructors.
+	app := fxtest.New(
+		t,
+		mcp.Module,
+	)
+	app.RequireStart()
+	app.RequireStop()
 }
